@@ -1,5 +1,5 @@
 /*
- * popcorn.js version 0.8
+ * popcorn.js version b628066
  * http://popcornjs.org
  *
  * Copyright 2011, Mozilla Foundation
@@ -2032,6 +2032,226 @@
     }
   });
 })( Popcorn );
+//PLUGIN: facebook
+
+(function(Popcorn, global ) {
+/**
+  * Facebook Popcorn plug-in 
+  * Places Facebook's "social plugins" inside a div ( http://developers.facebook.com/docs/plugins/ )
+  * Sets options according to user input or default values
+  * Options parameter will need a target, type, start and end time
+  * Type is the name of the plugin in fbxml format. Options: LIKE (default), LIKE-BOX, ACTIVITY, FACEPILE
+  * Target is the id of the document element that the text needs to be attached to. This target element must exist on the DOM
+  * Start is the time that you want this plug-in to execute
+  * End is the time that you want this plug-in to stop executing
+  *
+  * Other than the mandatory four parameters, there are several optional parameters (Some options are only applicable to certain plugins)
+  * Action - like button will either "Like" or "Recommend". Options: recommend / like(default)
+  * Always_post_to_friends - live-stream posts will be always be posted on your facebook wall if true. Options: true / false(default)
+  * Border_color - border color of the activity feed. Names (i.e: "white") and html color codes are valid
+  * Colorscheme - changes the color of almost all plugins. Options: light(default) / dark
+  * Event_app_id - an app_id is required for the live-stream plugin
+  * Font - the font of the text contained in the plugin. Options: arial / segoe ui / tahoma / trebuchet ms / verdana / lucida grande
+  * Header - displays the title of like-box or activity feed. Options: true / false(default)
+  * Href - url to apply to the plugin. Default is current page
+  * Layout - changes the format of the 'like' count (written in english or a number in a callout).
+  *          Options: box_count / button_count / standard(default)
+  * Max_rows - number of rows to disperse pictures in facepile. Default is 1
+  * Recommendations - shows recommendations, if any, in the bottom half of activity feed. Options: true / false(default)
+  * Show_faces - show pictures beside like button and like-box. Options: true / false(default)
+  * Site - href for activity feed. No idea why it must be "site". Default is current page
+  * Stream - displays a the latest posts from the specified page's wall. Options: true / false(default)
+  * Type - determines which plugin to create. Case insensitive
+  * Xid - unique identifier if more than one live-streams are on one page
+  *
+  * @param {Object} options
+  * 
+  * Example:
+    var p = Popcorn('#video')
+      .facebook({
+        type  : "LIKE-BOX",
+        target: "likeboxdiv",
+        start : 3,
+        end   : 10,
+        href  : "http://www.facebook.com/senecacollege",
+        show_faces: "true",
+        header: "false"
+      } )
+  * This will show how many people "like" Seneca College's Facebook page, and show their profile pictures
+  */
+
+  var ranOnce = false;
+
+  function toggle( container, display ) {
+    if ( container ) {
+      container.style.display = display;
+
+      return;
+    }
+
+    setTimeout(function() {
+      toggle( container, display );
+    }, 10 );
+  }
+
+  Popcorn.plugin( "facebook" , {
+    manifest:{
+      about:{
+        name   : "Popcorn Facebook Plugin",
+        version: "0.1",
+        author : "Dan Ventura",
+        website: "dsventura.blogspot.com"
+      },
+      options:{
+        type   : {elem:"select", options:["LIKE", "LIKE-BOX", "ACTIVITY", "FACEPILE", "LIVE-STREAM", "SEND"], label:"Type"},
+        target : "facebook-container",
+        start  : {elem:'input', type:'number', label:'In'},
+        end    : {elem:'input', type:'number', label:'Out'},
+        // optional parameters:
+        font   : {elem:"input", type:"text", label:"font"},        
+        xid    : {elem:"input", type:"text", label:"Xid"},
+        href   : {elem:"input", type:"text", label:"Href"},
+        site   : {elem:"input", type:"text", label:"Site"},
+        height : {elem:"input", type:"text", label:"Height"},
+        width  : {elem:"input", type:"text", label:"Width"},
+        action : {elem:"select", options:["like", "recommend"], label:"Action"},
+        stream : {elem:"select", options:["false", "true"], label:"Stream"},
+        header : {elem:"select", options:["false", "true"], label:"Header"},
+        layout : {elem:"select", options:["standard", "button_count", "box_count"], label:"Layout"},
+        max_rows     : {elem:"input", type:"text", label:"Max_rows"},
+        border_color : {elem:"input", type:"text", label:"Border_color"},
+        event_app_id : {elem:"input", type:"text", label:"Event_app_id"},
+        colorscheme  : {elem:"select", options:["light", "dark"], label:"Colorscheme"},
+        show_faces   : {elem:"select", options:["false", "true"], label:"Showfaces"},
+        recommendations        : {elem:"select", options:["false", "true"], label:"Recommendations"},
+        always_post_to_friends : {elem:"input",  options:["false", "true"], label:"Always_post_to_friends"}
+      }
+    },
+    
+    _setup: function( options ) {
+
+      var target = document.getElementById( options.target );
+
+      // facebook script requires a div named fb-root
+      if ( !document.getElementById( "fb-root" ) ) {
+        var fbRoot = document.createElement( "div" );
+        fbRoot.setAttribute( "id", "fb-root" );
+        document.body.appendChild( fbRoot );
+      }
+      
+      if ( !ranOnce || options.event_app_id ) {
+        ranOnce = true;
+        // initialize facebook JS SDK
+        Popcorn.getScript("http://connect.facebook.net/en_US/all.js");
+
+        global.fbAsyncInit = function() {
+          FB.init({
+            appId  : ( options.event_app_id || "" ),
+            status : true,
+            cookie : true,
+            xfbml  : true
+          });
+        };
+      }
+
+      var validType = function( type ) {
+        return ( [ "like", "like-box", "activity", "facepile", "comments", "live-stream", "send" ].indexOf( type ) > -1 );
+      };
+
+      // default plugin is like button
+      options.type = ( options.type || "like" ).toLowerCase();
+
+      // default plugin is like button
+      if ( !validType( options.type ) ) {
+        options.type = "like";
+      }
+
+      options._container = document.createElement( "fb:" + options.type );
+
+
+      var setOptions = (function( options ) {
+
+        options._container.style.display = "none";
+
+        // activity feed uses 'site' rather than 'href'
+        var attr = options.type === "activity" ? "site" : "href";
+
+        options._container.setAttribute( attr, ( options[ attr ] || document.URL ) );
+
+        return {
+          "like": function () {
+            options._container.setAttribute( "send", ( options.send || false ) );
+            options._container.setAttribute( "width", options.width );
+            options._container.setAttribute( "show_faces", options.show_faces );
+            options._container.setAttribute( "layout", options.layout );
+            options._container.setAttribute( "font", options.font );
+            options._container.setAttribute( "colorscheme", options.colorscheme );
+          },
+          "like-box": function () {
+            options._container.setAttribute( "height", ( options.height || 250 ) );
+            options._container.setAttribute( "width", options.width );
+            options._container.setAttribute( "show_faces", options.show_faces );
+            options._container.setAttribute( "stream", options.stream );
+            options._container.setAttribute( "header", options.header );
+            options._container.setAttribute( "colorscheme", options.colorscheme );
+          },
+          "facepile": function () {
+            options._container.setAttribute( "height", options.height );
+            options._container.setAttribute( "width", options.width );
+            options._container.setAttribute( "max_rows", ( options.max_rows || 1 ) );
+          },
+          "activity": function () {
+            options._container.setAttribute( "width", options.width );
+            options._container.setAttribute( "height", options.height );
+            options._container.setAttribute( "header", options.header );
+            options._container.setAttribute( "border_color", options.border_color );
+            options._container.setAttribute( "recommendations", options.recommendations );
+            options._container.setAttribute( "font", options.font );
+            options._container.setAttribute( "colorscheme", options.colorscheme );
+          },
+          "live-stream": function() {
+            options._container.setAttribute( "width", ( options.width || 400 ) );
+            options._container.setAttribute( "height", ( options.height || 500 ) );
+            options._container.setAttribute( "always_post_to_friends", ( options.always_post_to_friends || false ) );
+            options._container.setAttribute( "event_app_id", options.event_app_id );
+            options._container.setAttribute( "xid", options.xid );
+          },
+          "send": function() {
+            options._container.setAttribute( "font", options.font );
+            options._container.setAttribute( "colorscheme", options.colorscheme );
+          }
+        };
+      })( options );
+
+      setOptions[ options.type ]();
+
+      if ( !target && Popcorn.plugin.debug ) {
+        throw new Error( "flickr target container doesn't exist" );
+      }
+      target && target.appendChild( options._container );
+    },
+    /**
+    * @member facebook
+    * The start function will be executed when the currentTime
+    * of the video reaches the start time provided by the
+    * options variable
+    */
+    start: function( event, options ){
+      toggle( options._container, "inline" );
+    },
+    /**
+    * @member facebook
+    * The end function will be executed when the currentTime
+    * of the video reaches the end time provided by the
+    * options variable
+    */
+    end: function( event, options ){
+      toggle ( options._container, "none" );
+    }
+  });
+
+})( Popcorn, this );
+
 // PLUGIN: Flickr
 (function (Popcorn) {
 
@@ -2345,226 +2565,409 @@
 });
 
 })( Popcorn );
-//PLUGIN: facebook
+// PLUGIN: GML
 
-(function(Popcorn, global ) {
-/**
-  * Facebook Popcorn plug-in 
-  * Places Facebook's "social plugins" inside a div ( http://developers.facebook.com/docs/plugins/ )
-  * Sets options according to user input or default values
-  * Options parameter will need a target, type, start and end time
-  * Type is the name of the plugin in fbxml format. Options: LIKE (default), LIKE-BOX, ACTIVITY, FACEPILE
-  * Target is the id of the document element that the text needs to be attached to. This target element must exist on the DOM
-  * Start is the time that you want this plug-in to execute
-  * End is the time that you want this plug-in to stop executing
-  *
-  * Other than the mandatory four parameters, there are several optional parameters (Some options are only applicable to certain plugins)
-  * Action - like button will either "Like" or "Recommend". Options: recommend / like(default)
-  * Always_post_to_friends - live-stream posts will be always be posted on your facebook wall if true. Options: true / false(default)
-  * Border_color - border color of the activity feed. Names (i.e: "white") and html color codes are valid
-  * Colorscheme - changes the color of almost all plugins. Options: light(default) / dark
-  * Event_app_id - an app_id is required for the live-stream plugin
-  * Font - the font of the text contained in the plugin. Options: arial / segoe ui / tahoma / trebuchet ms / verdana / lucida grande
-  * Header - displays the title of like-box or activity feed. Options: true / false(default)
-  * Href - url to apply to the plugin. Default is current page
-  * Layout - changes the format of the 'like' count (written in english or a number in a callout).
-  *          Options: box_count / button_count / standard(default)
-  * Max_rows - number of rows to disperse pictures in facepile. Default is 1
-  * Recommendations - shows recommendations, if any, in the bottom half of activity feed. Options: true / false(default)
-  * Show_faces - show pictures beside like button and like-box. Options: true / false(default)
-  * Site - href for activity feed. No idea why it must be "site". Default is current page
-  * Stream - displays a the latest posts from the specified page's wall. Options: true / false(default)
-  * Type - determines which plugin to create. Case insensitive
-  * Xid - unique identifier if more than one live-streams are on one page
-  *
-  * @param {Object} options
-  * 
-  * Example:
-    var p = Popcorn('#video')
-      .facebook({
-        type  : "LIKE-BOX",
-        target: "likeboxdiv",
-        start : 3,
-        end   : 10,
-        href  : "http://www.facebook.com/senecacollege",
-        show_faces: "true",
-        header: "false"
-      } )
-  * This will show how many people "like" Seneca College's Facebook page, and show their profile pictures
-  */
+(function (Popcorn) {
 
-  var ranOnce = false;
+  var gmlPlayer = function( $p ) {
 
-  function toggle( container, display ) {
-    if ( container ) {
-      container.style.display = display;
+        var _stroke = 0,
+            onPt = 0, 
+            onStroke = 0,
+            x = null,
+            y = null,
+            rotation = false,
+            strokes = 0,
+            play = function() {},
+            reset = function() {
 
-      return;
-    }
+              $p.background( 0 );
+              onPt = onStroke = 0;
+              x = y = null;
+            },
+            drawLine = function( x, y, x2, y2 ) {
 
-    setTimeout(function() {
-      toggle( container, display );
-    }, 10 );
-  }
+              var _x, _y, _x2, _y2;
 
-  Popcorn.plugin( "facebook" , {
-    manifest:{
-      about:{
-        name   : "Popcorn Facebook Plugin",
-        version: "0.1",
-        author : "Dan Ventura",
-        website: "dsventura.blogspot.com"
-      },
-      options:{
-        type   : {elem:"select", options:["LIKE", "LIKE-BOX", "ACTIVITY", "FACEPILE", "LIVE-STREAM", "SEND"], label:"Type"},
-        target : "facebook-container",
-        start  : {elem:'input', type:'number', label:'In'},
-        end    : {elem:'input', type:'number', label:'Out'},
-        // optional parameters:
-        font   : {elem:"input", type:"text", label:"font"},        
-        xid    : {elem:"input", type:"text", label:"Xid"},
-        href   : {elem:"input", type:"text", label:"Href"},
-        site   : {elem:"input", type:"text", label:"Site"},
-        height : {elem:"input", type:"text", label:"Height"},
-        width  : {elem:"input", type:"text", label:"Width"},
-        action : {elem:"select", options:["like", "recommend"], label:"Action"},
-        stream : {elem:"select", options:["false", "true"], label:"Stream"},
-        header : {elem:"select", options:["false", "true"], label:"Header"},
-        layout : {elem:"select", options:["standard", "button_count", "box_count"], label:"Layout"},
-        max_rows     : {elem:"input", type:"text", label:"Max_rows"},
-        border_color : {elem:"input", type:"text", label:"Border_color"},
-        event_app_id : {elem:"input", type:"text", label:"Event_app_id"},
-        colorscheme  : {elem:"select", options:["light", "dark"], label:"Colorscheme"},
-        show_faces   : {elem:"select", options:["false", "true"], label:"Showfaces"},
-        recommendations        : {elem:"select", options:["false", "true"], label:"Recommendations"},
-        always_post_to_friends : {elem:"input",  options:["false", "true"], label:"Always_post_to_friends"}
-      }
-    },
-    
-    _setup: function( options ) {
+              if ( rotation ) {
 
-      var target = document.getElementById( options.target );
+                _x  = y * $p.height;
+                _y  = $p.width - ( x * $p.width );
+                _x2 = y2 * $p.height;
+                _y2 = $p.width - ( x2 * $p.width );
+              } else {
 
-      // facebook script requires a div named fb-root
-      if ( !document.getElementById( "fb-root" ) ) {
-        var fbRoot = document.createElement( "div" );
-        fbRoot.setAttribute( "id", "fb-root" );
-        document.body.appendChild( fbRoot );
-      }
-      
-      if ( !ranOnce || options.event_app_id ) {
-        ranOnce = true;
-        // initialize facebook JS SDK
-        Popcorn.getScript("http://connect.facebook.net/en_US/all.js");
+                _x  = x * $p.width;
+                _y  = y * $p.height;
+                _x2 = x2 * $p.width;
+                _y2 = y2 * $p.height;
+              }
 
-        global.fbAsyncInit = function() {
-          FB.init({
-            appId  : ( options.event_app_id || "" ),
-            status : true,
-            cookie : true,
-            xfbml  : true
-          });
+              $p.stroke( 0 );
+              $p.strokeWeight( 13 );
+              $p.strokeCap( $p.SQUARE );
+              $p.line( _x, _y, _x2, _y2 );
+              $p.stroke( 255 );
+              $p.strokeWeight( 12 );
+              $p.strokeCap( $p.ROUND );
+              $p.line( _x, _y, _x2, _y2 );
+            },
+            seek = function( point ) {
+
+              ( point < onPt ) && reset();
+
+              while ( onPt <= point ) {
+
+                if ( !strokes ) {
+                  return;
+                }
+
+                _stroke = strokes[ onStroke ] || strokes;
+                var pt = _stroke.pt[ onPt ],
+                    p = onPt;
+                x != null && drawLine( x, y, pt.x, pt.y );
+
+                x = pt.x;
+                y = pt.y;
+                ( onPt === p ) && onPt++;
+              }
+            };
+
+        $p.draw = function() {
+
+          play();
         };
-      }
+        $p.setup = function() {};
+        $p.construct = function( media, data, options ) {
 
-      var validType = function( type ) {
-        return ( [ "like", "like-box", "activity", "facepile", "comments", "live-stream", "send" ].indexOf( type ) > -1 );
+          var dataReady = function() {
+
+            if ( data ) {
+
+              strokes = data.gml.tag.drawing.stroke;
+
+              var drawingDur = ( options.end - options.start ) / ( strokes.pt || (function( strokes ) {
+
+                var rStrokes = [];
+
+                for ( var i = 0, sl = strokes.length; i < sl; i++ ) {
+
+                  rStrokes = rStrokes.concat( strokes[ i ].pt );
+                }
+
+                return rStrokes;
+              })( strokes ) ).length;
+
+              var tag = data.gml.tag,
+                  app_name =  tag.header && tag.header.client && tag.header.client.name;
+
+              rotation = app_name === 'Graffiti Analysis 2.0: DustTag' ||
+                         app_name === 'DustTag: Graffiti Analysis 2.0' ||
+                         app_name === 'Fat Tag - Katsu Edition';
+
+              play = function() {
+
+                if ( media.currentTime < options.endDrawing ) {
+
+                  seek( ( media.currentTime - options.start ) / drawingDur );
+                }
+              };
+
+              return;
+            }
+
+            setTimeout( dataReady, 5 );
+          };
+
+          $p.size( 640, 640 );
+          $p.frameRate( 60 );
+          $p.smooth();
+          reset();
+          $p.noLoop();
+
+          dataReady();
+        };
       };
+  
+  /**
+   * Grafiti markup Language (GML) popcorn plug-in 
+   * Renders a GML tag inside an HTML element
+   * Options parameter will need a mandatory start, end, target, gmltag.
+   * Optional parameters: none.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing 
+   * Target is the id of the document element that you wish to render the grafiti in
+   * gmltag is the numerical reference to a gml tag via 000000book.com
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+       .gml({
+         start: 0, // seconds
+         end: 5, // seconds
+         gmltag: '29582',
+         target: 'gmldiv'
+       });
+   *
+   */
+  Popcorn.plugin( "gml" , {
 
-      // default plugin is like button
-      options.type = ( options.type || "like" ).toLowerCase();
+    _setup : function( options ) {
 
-      // default plugin is like button
-      if ( !validType( options.type ) ) {
-        options.type = "like";
-      }
+      var self = this,
+          target = document.getElementById( options.target );
+      
+      options.endDrawing = options.endDrawing || options.end;
 
-      options._container = document.createElement( "fb:" + options.type );
+      // create a canvas to put in the target div
+      options.container = document.createElement( "canvas" );
 
-
-      var setOptions = (function( options ) {
-
-        options._container.style.display = "none";
-
-        // activity feed uses 'site' rather than 'href'
-        var attr = options.type === "activity" ? "site" : "href";
-
-        options._container.setAttribute( attr, ( options[ attr ] || document.URL ) );
-
-        return {
-          "like": function () {
-            options._container.setAttribute( "send", ( options.send || false ) );
-            options._container.setAttribute( "width", options.width );
-            options._container.setAttribute( "show_faces", options.show_faces );
-            options._container.setAttribute( "layout", options.layout );
-            options._container.setAttribute( "font", options.font );
-            options._container.setAttribute( "colorscheme", options.colorscheme );
-          },
-          "like-box": function () {
-            options._container.setAttribute( "height", ( options.height || 250 ) );
-            options._container.setAttribute( "width", options.width );
-            options._container.setAttribute( "show_faces", options.show_faces );
-            options._container.setAttribute( "stream", options.stream );
-            options._container.setAttribute( "header", options.header );
-            options._container.setAttribute( "colorscheme", options.colorscheme );
-          },
-          "facepile": function () {
-            options._container.setAttribute( "height", options.height );
-            options._container.setAttribute( "width", options.width );
-            options._container.setAttribute( "max_rows", ( options.max_rows || 1 ) );
-          },
-          "activity": function () {
-            options._container.setAttribute( "width", options.width );
-            options._container.setAttribute( "height", options.height );
-            options._container.setAttribute( "header", options.header );
-            options._container.setAttribute( "border_color", options.border_color );
-            options._container.setAttribute( "recommendations", options.recommendations );
-            options._container.setAttribute( "font", options.font );
-            options._container.setAttribute( "colorscheme", options.colorscheme );
-          },
-          "live-stream": function() {
-            options._container.setAttribute( "width", ( options.width || 400 ) );
-            options._container.setAttribute( "height", ( options.height || 500 ) );
-            options._container.setAttribute( "always_post_to_friends", ( options.always_post_to_friends || false ) );
-            options._container.setAttribute( "event_app_id", options.event_app_id );
-            options._container.setAttribute( "xid", options.xid );
-          },
-          "send": function() {
-            options._container.setAttribute( "font", options.font );
-            options._container.setAttribute( "colorscheme", options.colorscheme );
-          }
-        };
-      })( options );
-
-      setOptions[ options.type ]();
+      options.container.style.display = "none";
+      options.container.setAttribute( "id", "canvas" + options.gmltag );
 
       if ( !target && Popcorn.plugin.debug ) {
-        throw new Error( "flickr target container doesn't exist" );
+        throw new Error( "target container doesn't exist" );
       }
-      target && target.appendChild( options._container );
+      target && target.appendChild( options.container );
+
+      if ( !window.Processing ) {
+
+        Popcorn.getScript( "http://processingjs.org/content/download/processing-js-1.2.1/processing-1.2.1.min.js" );
+      }
+
+      // makes sure both processing.js and the gml data are loaded
+      var readyCheck = function() {
+
+        if ( window.Processing ) {
+
+          Popcorn.getJSONP( "http://000000book.com/data/" + options.gmltag + ".json?callback=", function( data ) {
+
+            options.pjsInstance = new Processing( options.container, gmlPlayer );
+            options.pjsInstance.construct( self.media, data, options );
+            options._running && options.pjsInstance.loop();
+          }, false );
+
+          return;
+        }
+
+        setTimeout( readyCheck, 5 );
+      };
+
+      readyCheck();
     },
     /**
-    * @member facebook
-    * The start function will be executed when the currentTime
-    * of the video reaches the start time provided by the
-    * options variable
-    */
-    start: function( event, options ){
-      toggle( options._container, "inline" );
+     * @member gml 
+     * The start function will be executed when the currentTime 
+     * of the video  reaches the start time provided by the 
+     * options variable
+     */
+    start: function( event, options ) {
+
+      options.pjsInstance && options.pjsInstance.loop();
+      options.container.style.display = "block";
     },
     /**
-    * @member facebook
-    * The end function will be executed when the currentTime
-    * of the video reaches the end time provided by the
-    * options variable
-    */
-    end: function( event, options ){
-      toggle ( options._container, "none" );
+     * @member gml 
+     * The end function will be executed when the currentTime 
+     * of the video  reaches the end time provided by the 
+     * options variable
+     */
+    end: function( event, options ) {
+
+      options.pjsInstance && options.pjsInstance.noLoop();
+      options.container.style.display = "none";
+    },
+    _teardown: function( options ) {
+
+      options.pjsInstance && options.pjsInstance.exit();
+      document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options.container );
     }
   });
+})( Popcorn );
+// PLUGIN: Google Feed
+(function ( Popcorn ) {
 
-})( Popcorn, this );
+  var i = 1,
+      scriptLoaded  = false,
 
+  dynamicFeedLoad = function() {
+    var dontLoad = false,
+        k = 0,
+        links = document.getElementsByTagName( "link" ),
+        len = links.length,
+        head = document.head || document.getElementsByTagName( "head" )[ 0 ],
+        css = document.createElement( "link" ),
+        resource = "http://www.google.com/uds/solutions/dynamicfeed/gfdynamicfeedcontrol.";
+
+    if ( !window.GFdynamicFeedControl ) {
+
+      Popcorn.getScript( resource + "js", function() {
+        scriptLoaded = true;
+      }); 
+
+    } else {
+      scriptLoaded = true;
+    }
+
+    //  Checking if the css file is already included
+    for ( ; k < len; k++ ){
+      if ( links[ k ].href === resource + "css" ) {
+        dontLoad = true;
+      }
+    }
+
+    if ( !dontLoad ) {
+      css.type = "text/css";
+      css.rel = "stylesheet";
+      css.href =  resource + "css";
+      head.insertBefore( css, head.firstChild );
+    }
+  };
+
+  if ( !window.google ) {
+
+    Popcorn.getScript( "http://www.google.com/jsapi", function() {
+
+      google.load( "feeds", "1", {
+
+        callback: function () {
+
+          dynamicFeedLoad();              
+        }
+      });
+    });
+
+  } else {
+    dynamicFeedLoad();
+  }
+
+  /**
+   * googlefeed popcorn plug-in
+   * Adds a feed from the specified blog url at the target div
+   * Options parameter will need a start, end, target, url and title
+   * -Start is the time that you want this plug-in to execute
+   * -End is the time that you want this plug-in to stop executing
+   * -Target is the id of the DOM element that you want the map to appear in. This element must be in the DOM
+   * -Url is the url of the blog's feed you are trying to access
+   * -Title is the title of the blog you want displayed above the feed
+   * -Orientation is the orientation of the blog, accepts either Horizontal or Vertical, defaults to Vertical
+   * @param {Object} options
+   *
+   * Example:
+    var p = Popcorn("#video")
+      .googlefeed({
+       start: 5, // seconds
+       end: 15, // seconds
+       target: "map",
+       url: "http://zenit.senecac.on.ca/~chris.tyler/planet/rss20.xml",
+       title: "Planet Feed"
+    } )
+  *
+  */
+
+  Popcorn.plugin( "googlefeed" , function( options ) {
+    // create a new div and append it to the parent div so nothing
+    // that already exists in the parent div gets overwritten
+    var newdiv = document.createElement( "div" ),
+        target = document.getElementById( options.target ),
+    initialize = function() {
+      //ensure that the script has been loaded
+      if ( !scriptLoaded ) {
+        setTimeout( function () {
+          initialize(); 
+        }, 5 );
+      } else {
+        // Create the feed control using the user entered url and title
+        options.feed = new GFdynamicFeedControl( options.url, newdiv, {
+          vertical: options.orientation.toLowerCase() === "vertical" ? true : false,
+          horizontal: options.orientation.toLowerCase() === "horizontal" ? true : false,
+          title: options.title = options.title || "Blog"
+        });
+      }
+    };
+
+    // Default to vertical orientation if empty or incorrect input
+    if( !options.orientation || ( options.orientation.toLowerCase() !== "vertical" &&
+      options.orientation.toLowerCase() !== "horizontal" ) ) {
+      options.orientation = "vertical";
+    }
+
+    newdiv.style.display = "none";
+    newdiv.id = "_feed" + i;
+    newdiv.style.width = "100%";
+    newdiv.style.height = "100%";
+    i++;
+
+    if ( !target && Popcorn.plugin.debug ) {
+      throw new Error( "target container doesn't exist" );
+    }
+    target && target.appendChild( newdiv );
+
+    initialize();
+    
+    return {
+      /**
+       * @member webpage
+       * The start function will be executed when the currentTime
+       * of the video reaches the start time provided by the
+       * options variable
+       */
+      start: function( event, options ){
+        newdiv.setAttribute( "style", "display:inline" );
+      },
+      /**
+       * @member webpage
+       * The end function will be executed when the currentTime
+       * of the video reaches the end time provided by the
+       * options variable
+       */
+      end: function( event, options ){
+        newdiv.setAttribute( "style", "display:none" );
+      },
+      _teardown: function( options ) {
+        document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( newdiv );
+        delete options.feed;
+      }
+    };
+  },
+  {
+    about: {
+      name:    "Popcorn Google Feed Plugin",
+      version: "0.1",
+      author:  "David Seifried",
+      website: "dseifried.wordpress.com"
+    },
+    options: {
+      start: {
+        elem: "input", 
+        type: "text", 
+        label: "In" 
+      },
+      end: { 
+        elem: "input", 
+        type: "text", 
+        label: "Out" 
+      },
+      target: "feed-container",
+      url: { 
+        elem: "input", 
+        type: "text", 
+        label: "url" 
+      },
+      title: { 
+        elem: "input", 
+        type: "text", 
+        label: "title" 
+      },
+      orientation: {
+        elem: "select", 
+        options: [ "Vertical","Horizontal" ], 
+        label: "orientation" 
+      }
+    }
+  });
+  
+})( Popcorn );
 
 // PLUGIN: Google Maps
 var googleCallback;
@@ -3100,225 +3503,6 @@ var googleCallback;
       }
   });
 })( Popcorn );
-// PLUGIN: GML
-
-(function (Popcorn) {
-
-  var gmlPlayer = function( $p ) {
-
-        var _stroke = 0,
-            onPt = 0, 
-            onStroke = 0,
-            x = null,
-            y = null,
-            rotation = false,
-            strokes = 0,
-            play = function() {},
-            reset = function() {
-
-              $p.background( 0 );
-              onPt = onStroke = 0;
-              x = y = null;
-            },
-            drawLine = function( x, y, x2, y2 ) {
-
-              var _x, _y, _x2, _y2;
-
-              if ( rotation ) {
-
-                _x  = y * $p.height;
-                _y  = $p.width - ( x * $p.width );
-                _x2 = y2 * $p.height;
-                _y2 = $p.width - ( x2 * $p.width );
-              } else {
-
-                _x  = x * $p.width;
-                _y  = y * $p.height;
-                _x2 = x2 * $p.width;
-                _y2 = y2 * $p.height;
-              }
-
-              $p.stroke( 0 );
-              $p.strokeWeight( 13 );
-              $p.strokeCap( $p.SQUARE );
-              $p.line( _x, _y, _x2, _y2 );
-              $p.stroke( 255 );
-              $p.strokeWeight( 12 );
-              $p.strokeCap( $p.ROUND );
-              $p.line( _x, _y, _x2, _y2 );
-            },
-            seek = function( point ) {
-
-              ( point < onPt ) && reset();
-
-              while ( onPt <= point ) {
-
-                if ( !strokes ) {
-                  return;
-                }
-
-                _stroke = strokes[ onStroke ] || strokes;
-                var pt = _stroke.pt[ onPt ],
-                    p = onPt;
-                x != null && drawLine( x, y, pt.x, pt.y );
-
-                x = pt.x;
-                y = pt.y;
-                ( onPt === p ) && onPt++;
-              }
-            };
-
-        $p.draw = function() {
-
-          play();
-        };
-        $p.setup = function() {};
-        $p.construct = function( media, data, options ) {
-
-          var dataReady = function() {
-
-            if ( data ) {
-
-              strokes = data.gml.tag.drawing.stroke;
-
-              var drawingDur = ( options.end - options.start ) / ( strokes.pt || (function( strokes ) {
-
-                var rStrokes = [];
-
-                for ( var i = 0, sl = strokes.length; i < sl; i++ ) {
-
-                  rStrokes = rStrokes.concat( strokes[ i ].pt );
-                }
-
-                return rStrokes;
-              })( strokes ) ).length;
-
-              var tag = data.gml.tag,
-                  app_name =  tag.header && tag.header.client && tag.header.client.name;
-
-              rotation = app_name === 'Graffiti Analysis 2.0: DustTag' ||
-                         app_name === 'DustTag: Graffiti Analysis 2.0' ||
-                         app_name === 'Fat Tag - Katsu Edition';
-
-              play = function() {
-
-                if ( media.currentTime < options.endDrawing ) {
-
-                  seek( ( media.currentTime - options.start ) / drawingDur );
-                }
-              };
-
-              return;
-            }
-
-            setTimeout( dataReady, 5 );
-          };
-
-          $p.size( 640, 640 );
-          $p.frameRate( 60 );
-          $p.smooth();
-          reset();
-          $p.noLoop();
-
-          dataReady();
-        };
-      };
-  
-  /**
-   * Grafiti markup Language (GML) popcorn plug-in 
-   * Renders a GML tag inside an HTML element
-   * Options parameter will need a mandatory start, end, target, gmltag.
-   * Optional parameters: none.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing 
-   * Target is the id of the document element that you wish to render the grafiti in
-   * gmltag is the numerical reference to a gml tag via 000000book.com
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-       .gml({
-         start: 0, // seconds
-         end: 5, // seconds
-         gmltag: '29582',
-         target: 'gmldiv'
-       });
-   *
-   */
-  Popcorn.plugin( "gml" , {
-
-    _setup : function( options ) {
-
-      var self = this,
-          target = document.getElementById( options.target );
-      
-      options.endDrawing = options.endDrawing || options.end;
-
-      // create a canvas to put in the target div
-      options.container = document.createElement( "canvas" );
-
-      options.container.style.display = "none";
-      options.container.setAttribute( "id", "canvas" + options.gmltag );
-
-      if ( !target && Popcorn.plugin.debug ) {
-        throw new Error( "target container doesn't exist" );
-      }
-      target && target.appendChild( options.container );
-
-      if ( !window.Processing ) {
-
-        Popcorn.getScript( "http://processingjs.org/content/download/processing-js-1.2.1/processing-1.2.1.min.js" );
-      }
-
-      // makes sure both processing.js and the gml data are loaded
-      var readyCheck = function() {
-
-        if ( window.Processing ) {
-
-          Popcorn.getJSONP( "http://000000book.com/data/" + options.gmltag + ".json?callback=", function( data ) {
-
-            options.pjsInstance = new Processing( options.container, gmlPlayer );
-            options.pjsInstance.construct( self.media, data, options );
-            options._running && options.pjsInstance.loop();
-          }, false );
-
-          return;
-        }
-
-        setTimeout( readyCheck, 5 );
-      };
-
-      readyCheck();
-    },
-    /**
-     * @member gml 
-     * The start function will be executed when the currentTime 
-     * of the video  reaches the start time provided by the 
-     * options variable
-     */
-    start: function( event, options ) {
-
-      options.pjsInstance && options.pjsInstance.loop();
-      options.container.style.display = "block";
-    },
-    /**
-     * @member gml 
-     * The end function will be executed when the currentTime 
-     * of the video  reaches the end time provided by the 
-     * options variable
-     */
-    end: function( event, options ) {
-
-      options.pjsInstance && options.pjsInstance.noLoop();
-      options.container.style.display = "none";
-    },
-    _teardown: function( options ) {
-
-      options.pjsInstance && options.pjsInstance.exit();
-      document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options.container );
-    }
-  });
-})( Popcorn );
 // PLUGIN: LASTFM
 
 (function (Popcorn) {
@@ -3442,991 +3626,6 @@ var googleCallback;
       end      : {elem:'input', type:'text', label:'Out'},
       target   : 'lastfm-container',
       artist   : {elem:'input', type:'text', label:'Artist'}
-    }
-  });
-
-})( Popcorn );
-// PLUGIN: lowerthird
-
-(function (Popcorn) {
-  
-  /**
-   * Lower Third popcorn plug-in 
-   * Displays information about a speaker over the video, or in the target div
-   * Options parameter will need a start, and end.
-   * Optional parameters are target, salutation, name and role.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing
-   * Target is the id of the document element that the content is
-   *  appended to, this target element must exist on the DOM
-   * salutation is the speaker's Mr. Ms. Dr. etc.
-   * name is the speaker's name.
-   * role is information about the speaker, example Engineer.
-   * 
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-        .lowerthird({
-          start:          5,                 // seconds, mandatory
-          end:            15,                // seconds, mandatory
-          salutation:     'Mr',              // optional
-          name:           'Scott Downe',     // optional
-          role:           'Programmer',      // optional
-          target:         'subtitlediv'      // optional
-        } )
-   *
-   */
-
-  Popcorn.plugin( "lowerthird" , {
-    
-      manifest: {
-        about:{
-          name: "Popcorn lowerthird Plugin",
-          version: "0.1",
-          author: "Scott Downe",
-          website: "http://scottdowne.wordpress.com/"
-        },
-        options:{
-          start : {elem:'input', type:'text', label:'In'},
-          end : {elem:'input', type:'text', label:'Out'},
-          target : 'lowerthird-container',
-          salutation : {elem:'input', type:'text', label:'Text'},
-          name : {elem:'input', type:'text', label:'Text'},
-          role : {elem:'input', type:'text', label:'Text'}
-        }
-      },
-
-      _setup: function( options ) {
-
-        var target = document.getElementById( options.target );
-
-        // Creates a div for all Lower Thirds to use
-        if ( !this.container ) {
-          this.container = document.createElement('div');
-
-          this.container.style.position = "absolute";
-          this.container.style.color = "white";
-          this.container.style.textShadow = "black 2px 2px 6px";
-          this.container.style.fontSize = "24px";
-          this.container.style.fontWeight = "bold";
-          this.container.style.paddingLeft = "40px";
-
-          // the video element must have height and width defined
-          this.container.style.width = this.video.offsetWidth + "px";
-          this.container.style.left = this.position().left + "px";
-
-          this.video.parentNode.appendChild( this.container );
-        }
-
-        // if a target is specified, use that
-        if ( options.target && options.target !== "lowerthird-container") {
-          options.container = document.createElement( "div" );
-          if ( !target && Popcorn.plugin.debug ) {
-            throw new Error( "target container doesn't exist" );
-          }
-          target && target.appendChild( options.container );
-        } else { // use shared default container
-          options.container = this.container;
-        }
-
-      },
-      /**
-       * @member lowerthird
-       * The start function will be executed when the currentTime
-       * of the video reaches the start time provided by the
-       * options variable
-       */
-      start: function(event, options){
-        options.container.innerHTML = ( options.salutation ? options.salutation + " " : "" ) + options.name + ( options.role ? "<br />" + options.role : "" );
-        this.container.style.top = this.position().top + this.video.offsetHeight - ( 40 + this.container.offsetHeight ) + "px";
-      },
-      /**
-       * @member lowerthird
-       * The end function will be executed when the currentTime
-       * of the video reaches the end time provided by the
-       * options variable
-       */
-      end: function(event, options){
-        options.container.innerHTML = "";
-      }
-   
-  } );
-
-})( Popcorn );
-// PLUGIN: Google Feed
-(function ( Popcorn ) {
-
-  var i = 1,
-      scriptLoaded  = false,
-
-  dynamicFeedLoad = function() {
-    var dontLoad = false,
-        k = 0,
-        links = document.getElementsByTagName( "link" ),
-        len = links.length,
-        head = document.head || document.getElementsByTagName( "head" )[ 0 ],
-        css = document.createElement( "link" ),
-        resource = "http://www.google.com/uds/solutions/dynamicfeed/gfdynamicfeedcontrol.";
-
-    if ( !window.GFdynamicFeedControl ) {
-
-      Popcorn.getScript( resource + "js", function() {
-        scriptLoaded = true;
-      }); 
-
-    } else {
-      scriptLoaded = true;
-    }
-
-    //  Checking if the css file is already included
-    for ( ; k < len; k++ ){
-      if ( links[ k ].href === resource + "css" ) {
-        dontLoad = true;
-      }
-    }
-
-    if ( !dontLoad ) {
-      css.type = "text/css";
-      css.rel = "stylesheet";
-      css.href =  resource + "css";
-      head.insertBefore( css, head.firstChild );
-    }
-  };
-
-  if ( !window.google ) {
-
-    Popcorn.getScript( "http://www.google.com/jsapi", function() {
-
-      google.load( "feeds", "1", {
-
-        callback: function () {
-
-          dynamicFeedLoad();              
-        }
-      });
-    });
-
-  } else {
-    dynamicFeedLoad();
-  }
-
-  /**
-   * googlefeed popcorn plug-in
-   * Adds a feed from the specified blog url at the target div
-   * Options parameter will need a start, end, target, url and title
-   * -Start is the time that you want this plug-in to execute
-   * -End is the time that you want this plug-in to stop executing
-   * -Target is the id of the DOM element that you want the map to appear in. This element must be in the DOM
-   * -Url is the url of the blog's feed you are trying to access
-   * -Title is the title of the blog you want displayed above the feed
-   * -Orientation is the orientation of the blog, accepts either Horizontal or Vertical, defaults to Vertical
-   * @param {Object} options
-   *
-   * Example:
-    var p = Popcorn("#video")
-      .googlefeed({
-       start: 5, // seconds
-       end: 15, // seconds
-       target: "map",
-       url: "http://zenit.senecac.on.ca/~chris.tyler/planet/rss20.xml",
-       title: "Planet Feed"
-    } )
-  *
-  */
-
-  Popcorn.plugin( "googlefeed" , function( options ) {
-    // create a new div and append it to the parent div so nothing
-    // that already exists in the parent div gets overwritten
-    var newdiv = document.createElement( "div" ),
-        target = document.getElementById( options.target ),
-    initialize = function() {
-      //ensure that the script has been loaded
-      if ( !scriptLoaded ) {
-        setTimeout( function () {
-          initialize(); 
-        }, 5 );
-      } else {
-        // Create the feed control using the user entered url and title
-        options.feed = new GFdynamicFeedControl( options.url, newdiv, {
-          vertical: options.orientation.toLowerCase() === "vertical" ? true : false,
-          horizontal: options.orientation.toLowerCase() === "horizontal" ? true : false,
-          title: options.title = options.title || "Blog"
-        });
-      }
-    };
-
-    // Default to vertical orientation if empty or incorrect input
-    if( !options.orientation || ( options.orientation.toLowerCase() !== "vertical" &&
-      options.orientation.toLowerCase() !== "horizontal" ) ) {
-      options.orientation = "vertical";
-    }
-
-    newdiv.style.display = "none";
-    newdiv.id = "_feed" + i;
-    newdiv.style.width = "100%";
-    newdiv.style.height = "100%";
-    i++;
-
-    if ( !target && Popcorn.plugin.debug ) {
-      throw new Error( "target container doesn't exist" );
-    }
-    target && target.appendChild( newdiv );
-
-    initialize();
-    
-    return {
-      /**
-       * @member webpage
-       * The start function will be executed when the currentTime
-       * of the video reaches the start time provided by the
-       * options variable
-       */
-      start: function( event, options ){
-        newdiv.setAttribute( "style", "display:inline" );
-      },
-      /**
-       * @member webpage
-       * The end function will be executed when the currentTime
-       * of the video reaches the end time provided by the
-       * options variable
-       */
-      end: function( event, options ){
-        newdiv.setAttribute( "style", "display:none" );
-      },
-      _teardown: function( options ) {
-        document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( newdiv );
-        delete options.feed;
-      }
-    };
-  },
-  {
-    about: {
-      name:    "Popcorn Google Feed Plugin",
-      version: "0.1",
-      author:  "David Seifried",
-      website: "dseifried.wordpress.com"
-    },
-    options: {
-      start: {
-        elem: "input", 
-        type: "text", 
-        label: "In" 
-      },
-      end: { 
-        elem: "input", 
-        type: "text", 
-        label: "Out" 
-      },
-      target: "feed-container",
-      url: { 
-        elem: "input", 
-        type: "text", 
-        label: "url" 
-      },
-      title: { 
-        elem: "input", 
-        type: "text", 
-        label: "title" 
-      },
-      orientation: {
-        elem: "select", 
-        options: [ "Vertical","Horizontal" ], 
-        label: "orientation" 
-      }
-    }
-  });
-  
-})( Popcorn );
-// PLUGIN: Subtitle
-
-(function ( Popcorn ) {
-
-  var i = 0,
-      createDefaultContainer = function( context ) {
-
-        var ctxContainer = context.container = document.createElement( "div" ),
-            style = ctxContainer.style,
-            media = context.media;
-
-        var updatePosition = function() {
-          var position = context.position();
-          // the video element must have height and width defined
-          style.fontSize = "18px";
-          style.width = media.offsetWidth + "px";
-          style.top = position.top  + media.offsetHeight - ctxContainer.offsetHeight - 40 + "px";
-          style.left = position.left + "px";
-
-          setTimeout( updatePosition, 10 );
-        };
-
-        ctxContainer.id = Popcorn.guid();
-        style.position = "absolute";
-        style.color = "white";
-        style.textShadow = "black 2px 2px 6px";
-        style.fontWeight = "bold";
-        style.textAlign = "center";
-
-        updatePosition();
-
-        context.media.parentNode.appendChild( ctxContainer );
-      };
-
-  /**
-   * Subtitle popcorn plug-in 
-   * Displays a subtitle over the video, or in the target div
-   * Options parameter will need a start, and end.
-   * Optional parameters are target and text.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing
-   * Target is the id of the document element that the content is
-   *  appended to, this target element must exist on the DOM
-   * Text is the text of the subtitle you want to display.
-   *
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-        .subtitle({
-          start:            5,                 // seconds, mandatory
-          end:              15,                // seconds, mandatory
-          text:             'Hellow world',    // optional
-          target:           'subtitlediv',     // optional
-        } )
-   *
-   */
-
-  Popcorn.plugin( "subtitle" , {
-    
-      manifest: {
-        about: {
-          name: "Popcorn Subtitle Plugin",
-          version: "0.1",
-          author: "Scott Downe",
-          website: "http://scottdowne.wordpress.com/"
-        },
-        options: {
-          start: {
-            elem: "input", 
-            type: "text", 
-            label: "In"
-          },
-          end: {
-            elem: "input", 
-            type: "text", 
-            label: "Out"
-          },
-          target: "subtitle-container",
-          text: {
-            elem: "input", 
-            type: "text", 
-            label: "Text"
-          }
-        }
-      },
-
-      _setup: function( options ) {
-        var newdiv = document.createElement( "div" );
-
-        newdiv.id = "subtitle-" + i++;
-        newdiv.style.display = "none";
-
-        // Creates a div for all subtitles to use
-        ( !this.container && ( !options.target || options.target === "subtitle-container" ) ) && 
-          createDefaultContainer( this );
-
-        // if a target is specified, use that
-        if ( options.target && options.target !== "subtitle-container" ) {
-          options.container = document.getElementById( options.target );
-        } else { 
-          // use shared default container
-          options.container = this.container;
-        }
-
-        document.getElementById( options.container.id ) && document.getElementById( options.container.id ).appendChild( newdiv );
-        options.innerContainer = newdiv;
-
-        options.showSubtitle = function() {
-          options.innerContainer.innerHTML = options.text;
-        };
-      },
-      /**
-       * @member subtitle 
-       * The start function will be executed when the currentTime 
-       * of the video  reaches the start time provided by the 
-       * options variable
-       */
-      start: function( event, options ){
-        options.innerContainer.style.display = "inline";
-        options.showSubtitle( options, options.text );
-      },
-      /**
-       * @member subtitle 
-       * The end function will be executed when the currentTime 
-       * of the video  reaches the end time provided by the 
-       * options variable
-       */
-      end: function( event, options ) {
-        options.innerContainer.style.display = "none";
-        options.innerContainer.innerHTML = "";
-      },
-
-      _teardown: function ( options ) {
-        options.container.removeChild( options.innerContainer );
-      }
-   
-  });
-
-})( Popcorn );
-// PLUGIN: tagthisperson
-
-(function (Popcorn) {
-    
-  var peopleArray = [];
-  // one People object per options.target
-  var People = function() {
-    this.name = "";
-    this.contains = { };
-    this.toString = function() {
-      var r = [];
-      for ( var j in this.contains ) {
-        if ( this.contains.hasOwnProperty( j ) ) {
-          r.push( " " + this.contains[ j ] );
-        }
-      }
-      return r.toString();
-    };
-  };
-  
-  /**
-   * tagthisperson popcorn plug-in 
-   * Adds people's names to an element on the page.
-   * Options parameter will need a start, end, target, image and person.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing 
-   * Person is the name of the person who you want to tag
-   * Image is the url to the image of the person - optional
-   * href is the url to the webpage of the person - optional   
-   * Target is the id of the document element that the text needs to be 
-   * attached to, this target element must exist on the DOM
-   * 
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-        .tagthisperson({
-          start: 5, // seconds
-          end: 15, // seconds
-          person: '@annasob',
-          image:  'http://newshour.s3.amazonaws.com/photos%2Fspeeches%2Fguests%2FRichardNSmith_thumbnail.jpg',
-          href:   'http://annasob.wordpress.com',
-          target: 'tagdiv'
-        } )
-   *
-   */
-  Popcorn.plugin( "tagthisperson" , ( function() {
-    
-    return {
-    
-      _setup: function( options ) {
-        var exists = false,
-            target = document.getElementById( options.target );
-
-        if ( !target && Popcorn.plugin.debug ) {
-          throw new Error( "target container doesn't exist" );
-        }
-
-        // loop through the existing objects to ensure no duplicates
-        // the idea here is to have one object per unique options.target
-        for ( var i = 0; i < peopleArray.length; i++ ) {
-          if ( peopleArray[ i ].name === options.target ) {
-            options._p = peopleArray[ i ];  
-            exists = true;
-            break;
-          }
-        }
-        if ( !exists ) {
-          options._p = new People();
-          options._p.name = options.target;
-          peopleArray.push( options._p );
-        }
-      },
-      /**
-       * @member tagthisperson 
-       * The start function will be executed when the currentTime 
-       * of the video  reaches the start time provided by the 
-       * options variable
-       */
-      start: function( event, options ){
-        options._p.contains[ options.person ] = ( options.image ) ? "<img src='" + options.image + "'/> " : "" ;
-        options._p.contains[ options.person ] += ( options.href ) ? "<a href='" + options.href + "' target='_blank'> " + options.person + "</a>" : options.person ;
-
-        document.getElementById( options.target ).innerHTML = options._p.toString();
-      },
-      /**
-       * @member tagthisperson 
-       * The end function will be executed when the currentTime 
-       * of the video  reaches the end time provided by the 
-       * options variable
-       */
-      end: function( event, options ){
-        delete options._p.contains[ options.person ];
-
-        document.getElementById( options.target ).innerHTML = options._p.toString();
-      }
-   };
-  })(),
-  {
-    about:{
-      name: "Popcorn tagthisperson Plugin",
-      version: "0.1",
-      author: "@annasob",
-      website: "annasob.wordpress.com"
-    },
-    options:{
-      start    : {elem:'input', type:'text', label:'In'},
-      end      : {elem:'input', type:'text', label:'Out'},
-      target   : 'tagthisperson-container',
-      person   : {elem:'input', type:'text', label:'Name'},
-      image    : {elem:'input', type:'text', label:'Image Src'},
-      href     : {elem:'input', type:'text', label:'URL'}   
-    }
-  });
-
-})( Popcorn );
-// PLUGIN: TWITTER
-
-(function (Popcorn) {
-  var scriptLoading = false;
-
-  /**
-   * Twitter popcorn plug-in 
-   * Appends a Twitter widget to an element on the page.
-   * Options parameter will need a start, end, target and source.
-   * Optional parameters are height and width.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing
-   * Src is the hash tag or twitter user to get tweets from
-   * Target is the id of the document element that the images are
-   *  appended to, this target element must exist on the DOM
-   * Height is the height of the widget, defaults to 200
-   * Width is the width of the widget, defaults to 250
-   * 
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-        .twitter({
-          start:          5,                // seconds, mandatory
-          end:            15,               // seconds, mandatory
-          src:            '@stevesong',     // mandatory, also accepts hash tags
-          height:         200,              // optional
-          width:          250,              // optional
-          target:         'twitterdiv'      // mandatory
-        } )
-   *
-   */
-
-  Popcorn.plugin( "twitter" , {
-
-      manifest: {
-        about:{
-          name:    "Popcorn Twitter Plugin",
-          version: "0.1",
-          author:  "Scott Downe",
-          website: "http://scottdowne.wordpress.com/"
-        },
-        options:{
-          start   : {elem:'input', type:'number', label:'In'},
-          end     : {elem:'input', type:'number', label:'Out'},
-          src     : {elem:'input', type:'text',   label:'Source'},
-          target  : 'twitter-container',
-          height  : {elem:'input', type:'number', label:'Height'},
-          width   : {elem:'input', type:'number', label:'Width'}
-        }
-      },
-
-      _setup: function( options ) {
-
-        if ( !window.TWTR && !scriptLoading ) {
-          scriptLoading = true;
-          Popcorn.getScript("http://widgets.twimg.com/j/2/widget.js");
-        }
-
-        var target = document.getElementById( options.target );
-
-        // setup widget div that is unique per track
-        options.container = document.createElement( 'div' ); // create the div to store the widget
-        options.container.setAttribute('id', Popcorn.guid()); // use this id to connect it to the widget
-        options.container.style.display = "none"; // display none by default
-
-        if ( !target && Popcorn.plugin.debug ) {
-          throw new Error( "target container doesn't exist" );
-        }
-         // add the widget's div to the target div
-        target && target.appendChild( options.container );
-
-        // setup info for the widget
-        var src     = options.src || "",
-            width   = options.width || 250,
-            height  = options.height || 200,
-            profile = /^@/.test( src ),
-            hash    = /^#/.test( src ),
-            widgetOptions = {
-              version: 2,
-              id: options.container.getAttribute( 'id' ),  // use this id to connect it to the div
-              rpp: 30,
-              width: width,
-              height: height,
-              interval: 6000,
-              theme: {
-                shell: {
-                  background: '#ffffff',
-                  color: '#000000'
-                },
-                tweets: {
-                  background: '#ffffff',
-                  color: '#444444',
-                  links: '#1985b5'
-                }
-              },
-              features: {
-                loop: true,
-                timestamp: true,
-                avatars: true,
-                hashtags: true,
-                toptweets: true,
-                live: true,
-                scrollbar: false,
-                behavior: 'default'
-              }
-            };
-
-        // create widget
-        var isReady = function( that ) {
-          if ( window.TWTR ) {
-            if ( profile ) {
-
-              widgetOptions.type = "profile";
-
-              new TWTR.Widget( widgetOptions ).render().setUser( src ).start();
-
-            } else if ( hash ) {
-
-              widgetOptions.type = "search";
-              widgetOptions.search = src;
-              widgetOptions.subject = src;
-
-              new TWTR.Widget( widgetOptions ).render().start();
-
-            }
-          } else {
-            setTimeout( function() {
-              isReady( that );
-            }, 1);
-          }
-        };
-
-        isReady( this );
-      },
-
-      /**
-       * @member Twitter 
-       * The start function will be executed when the currentTime 
-       * of the video  reaches the start time provided by the 
-       * options variable
-       */
-      start: function( event, options ) {
-        options.container.style.display = "inline";
-      },
-
-      /**
-       * @member Twitter 
-       * The end function will be executed when the currentTime 
-       * of the video  reaches the end time provided by the 
-       * options variable
-       */
-      end: function( event, options ) {
-        options.container.style.display = "none";
-      },
-      _teardown: function( options ) {
-
-        document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options.container );
-      }
-    });
-
-})( Popcorn );
-// PLUGIN: WEBPAGE
-
-(function (Popcorn) {
-  
-  /**
-   * Webpages popcorn plug-in 
-   * Creates an iframe showing a website specified by the user
-   * Options parameter will need a start, end, id, target and src.
-   * Start is the time that you want this plug-in to execute
-   * End is the time that you want this plug-in to stop executing 
-   * Id is the id that you want assigned to the iframe
-   * Target is the id of the document element that the iframe needs to be attached to, 
-   * this target element must exist on the DOM
-   * Src is the url of the website that you want the iframe to display
-   *
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn('#video')
-        .webpage({
-          id: "webpages-a", 
-          start: 5, // seconds
-          end: 15, // seconds
-          src: 'http://www.webmademovies.org',
-          target: 'webpagediv'
-        } )
-   *
-   */
-  Popcorn.plugin( "webpage" , {
-    manifest: {
-      about:{
-        name: "Popcorn Webpage Plugin",
-        version: "0.1",
-        author: "@annasob",
-        website: "annasob.wordpress.com"
-      },
-      options:{
-        id     : {elem:'input', type:'text', label:'Id'},
-        start  : {elem:'input', type:'text', label:'In'},
-        end    : {elem:'input', type:'text', label:'Out'},
-        src    : {elem:'input', type:'text', label:'Src'},
-        target : 'iframe-container'
-      }
-    },
-    _setup : function( options ) {
-
-      var target = document.getElementById( options.target );
-
-      // make an iframe
-      options._iframe  = document.createElement( 'iframe' );
-      options._iframe.setAttribute('width', "100%");
-      options._iframe.setAttribute('height', "100%");
-      options._iframe.id  = options.id;
-      options._iframe.src = options.src;
-      options._iframe.style.display = 'none';
-
-      if ( !target && Popcorn.plugin.debug ) {
-        throw new Error( "target container doesn't exist" );
-      }
-
-      // add the hidden iframe to the DOM
-      target && target.appendChild(options._iframe);
-      
-    },
-    /**
-     * @member webpage 
-     * The start function will be executed when the currentTime 
-     * of the video  reaches the start time provided by the 
-     * options variable
-     */
-    start: function(event, options){
-      // make the iframe visible
-      options._iframe.src = options.src;
-      options._iframe.style.display = 'inline';
-    },
-    /**
-     * @member webpage 
-     * The end function will be executed when the currentTime 
-     * of the video  reaches the end time provided by the 
-     * options variable
-     */
-    end: function(event, options){
-      // make the iframe invisible
-      options._iframe.style.display = 'none';
-    },
-    _teardown: function( options ) {
-
-      document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options._iframe );
-    }
-  });
-})( Popcorn );
-// PLUGIN: WIKIPEDIA
-
-
-var wikiCallback;
-
-(function ( Popcorn ) {
-  
-  /**
-   * Wikipedia popcorn plug-in 
-   * Displays a wikipedia aricle in the target specified by the user by using
-   * new DOM element instead overwriting them
-   * Options parameter will need a start, end, target, lang, src, title and numberofwords.
-   * -Start is the time that you want this plug-in to execute
-   * -End is the time that you want this plug-in to stop executing 
-   * -Target is the id of the document element that the text from the article needs to be  
-   * attached to, this target element must exist on the DOM
-   * -Lang (optional, defaults to english) is the language in which the article is in.
-   * -Src is the url of the article 
-   * -Title (optional) is the title of the article
-   * -numberofwords (optional, defaults to 200) is  the number of words you want displaid.  
-   *
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn("#video")
-        .wikipedia({
-          start: 5, // seconds
-          end: 15, // seconds
-          src: "http://en.wikipedia.org/wiki/Cape_Town",
-          target: "wikidiv"
-        } )
-   *
-   */
-  Popcorn.plugin( "wikipedia" , {
-      
-    manifest: {
-      about:{
-        name: "Popcorn Wikipedia Plugin",
-        version: "0.1",
-        author: "@annasob",
-        website: "annasob.wordpress.com"
-      },
-      options:{
-        start: {
-          elem: "input", 
-          type: "text", 
-          label: "In"
-        },
-        end: {
-          elem: "input", 
-          type: "text", 
-          label: "Out"
-        },
-        lang: {
-          elem: "input", 
-          type: "text", 
-          label: "Language"
-        },
-        src: {
-          elem: "input", 
-          type: "text", 
-          label: "Src"
-        },
-        title: {
-          elem: "input", 
-          type: "text", 
-          label: "Title"
-        },
-        numberofwords: {
-          elem: "input", 
-          type: "text", 
-          label: "Num Of Words"
-        },
-        target: "wikipedia-container"
-      }
-    },
-    /**
-     * @member wikipedia 
-     * The setup function will get all of the needed 
-     * items in place before the start function is called. 
-     * This includes getting data from wikipedia, if the data
-     * is not received and processed before start is called start 
-     * will not do anything
-     */
-    _setup : function( options ) {
-      // declare needed variables
-      // get a guid to use for the global wikicallback function
-      var  _text, _guid = Popcorn.guid(); 
-      
-      // if the user didn't specify a language default to english
-      if ( !options.lang ) { 
-        options.lang = "en"; 
-      }
-
-      // if the user didn't specify number of words to use default to 200 
-      options.numberofwords  = options.numberofwords || 200;
-            
-      // wiki global callback function with a unique id
-      // function gets the needed information from wikipedia
-      // and stores it by appending values to the options object
-      window[ "wikiCallback" + _guid ]  = function ( data ) { 
-
-        options._link = document.createElement( "a" );
-        options._link.setAttribute( "href", options.src );
-        options._link.setAttribute( "target", "_blank" );
-
-        // add the title of the article to the link
-        options._link.innerHTML = options.title || data.parse.displaytitle;
-
-        // get the content of the wiki article
-        options._desc = document.createElement( "p" );
-
-        // get the article text and remove any special characters
-        _text = data.parse.text[ "*" ].substr( data.parse.text[ "*" ].indexOf( "<p>" ) );
-        _text = _text.replace( /((<(.|\n)+?>)|(\((.*?)\) )|(\[(.*?)\]))/g, "" );
-        
-        _text = _text.split( " " );
-        options._desc.innerHTML = ( _text.slice( 0, ( _text.length >= options.numberofwords ? options.numberofwords : _text.length ) ).join (" ") + " ..." ) ;
-        
-        options._fired = true;
-      };
-      
-      if ( options.src ) {
-        Popcorn.getScript( "http://" + options.lang + ".wikipedia.org/w/api.php?action=parse&props=text&page=" + 
-          options.src.slice( options.src.lastIndexOf("/")+1)  + "&format=json&callback=wikiCallback" + _guid);
-      } else if ( Popcorn.plugin.debug ) {
-        throw new Error( "Wikipedia plugin needs a 'src'" );
-      }
-
-    },
-    /**
-     * @member wikipedia 
-     * The start function will be executed when the currentTime 
-     * of the video  reaches the start time provided by the 
-     * options variable
-     */
-    start: function( event, options ){
-      // dont do anything if the information didn't come back from wiki
-      var isReady = function () {
-        
-        if ( !options._fired ) {
-          setTimeout( function () {
-            isReady();
-          }, 13);
-        } else {
-      
-          if ( options._link && options._desc ) {
-            if ( document.getElementById( options.target ) ) {
-              document.getElementById( options.target ).appendChild( options._link );
-              document.getElementById( options.target ).appendChild( options._desc );
-              options._added = true;
-            }
-          }
-        }
-      };
-      
-      isReady();
-    },
-    /**
-     * @member wikipedia 
-     * The end function will be executed when the currentTime 
-     * of the video  reaches the end time provided by the 
-     * options variable
-     */
-    end: function( event, options ){
-      // ensure that the data was actually added to the 
-      // DOM before removal
-      if ( options._added ) {
-        document.getElementById( options.target ).removeChild( options._link );
-        document.getElementById( options.target ).removeChild( options._desc );
-      }
-    },
-
-    _teardown: function( options ){
-
-      if ( options._added ) {
-        options._link.parentNode && document.getElementById( options.target ).removeChild( options._link );
-        options._desc.parentNode && document.getElementById( options.target ).removeChild( options._desc );
-        delete options.target;
-      }
     }
   });
 
@@ -4666,6 +3865,114 @@ var wikiCallback;
       tar && tar.removeChild( options._container );
     }
   });
+})( Popcorn );
+// PLUGIN: lowerthird
+
+(function (Popcorn) {
+  
+  /**
+   * Lower Third popcorn plug-in 
+   * Displays information about a speaker over the video, or in the target div
+   * Options parameter will need a start, and end.
+   * Optional parameters are target, salutation, name and role.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing
+   * Target is the id of the document element that the content is
+   *  appended to, this target element must exist on the DOM
+   * salutation is the speaker's Mr. Ms. Dr. etc.
+   * name is the speaker's name.
+   * role is information about the speaker, example Engineer.
+   * 
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+        .lowerthird({
+          start:          5,                 // seconds, mandatory
+          end:            15,                // seconds, mandatory
+          salutation:     'Mr',              // optional
+          name:           'Scott Downe',     // optional
+          role:           'Programmer',      // optional
+          target:         'subtitlediv'      // optional
+        } )
+   *
+   */
+
+  Popcorn.plugin( "lowerthird" , {
+    
+      manifest: {
+        about:{
+          name: "Popcorn lowerthird Plugin",
+          version: "0.1",
+          author: "Scott Downe",
+          website: "http://scottdowne.wordpress.com/"
+        },
+        options:{
+          start : {elem:'input', type:'text', label:'In'},
+          end : {elem:'input', type:'text', label:'Out'},
+          target : 'lowerthird-container',
+          salutation : {elem:'input', type:'text', label:'Text'},
+          name : {elem:'input', type:'text', label:'Text'},
+          role : {elem:'input', type:'text', label:'Text'}
+        }
+      },
+
+      _setup: function( options ) {
+
+        var target = document.getElementById( options.target );
+
+        // Creates a div for all Lower Thirds to use
+        if ( !this.container ) {
+          this.container = document.createElement('div');
+
+          this.container.style.position = "absolute";
+          this.container.style.color = "white";
+          this.container.style.textShadow = "black 2px 2px 6px";
+          this.container.style.fontSize = "24px";
+          this.container.style.fontWeight = "bold";
+          this.container.style.paddingLeft = "40px";
+
+          // the video element must have height and width defined
+          this.container.style.width = this.video.offsetWidth + "px";
+          this.container.style.left = this.position().left + "px";
+
+          this.video.parentNode.appendChild( this.container );
+        }
+
+        // if a target is specified, use that
+        if ( options.target && options.target !== "lowerthird-container") {
+          options.container = document.createElement( "div" );
+          if ( !target && Popcorn.plugin.debug ) {
+            throw new Error( "target container doesn't exist" );
+          }
+          target && target.appendChild( options.container );
+        } else { // use shared default container
+          options.container = this.container;
+        }
+
+      },
+      /**
+       * @member lowerthird
+       * The start function will be executed when the currentTime
+       * of the video reaches the start time provided by the
+       * options variable
+       */
+      start: function(event, options){
+        options.container.innerHTML = ( options.salutation ? options.salutation + " " : "" ) + options.name + ( options.role ? "<br />" + options.role : "" );
+        this.container.style.top = this.position().top + this.video.offsetHeight - ( 40 + this.container.offsetHeight ) + "px";
+      },
+      /**
+       * @member lowerthird
+       * The end function will be executed when the currentTime
+       * of the video reaches the end time provided by the
+       * options variable
+       */
+      end: function(event, options){
+        options.container.innerHTML = "";
+      }
+   
+  } );
+
 })( Popcorn );
 // PLUGIN: Mustache
 
@@ -5190,154 +4497,6 @@ document.addEventListener( "click", function( event ) {
     });
   }
 }, false );
-// PLUGIN: Wordriver
-
-(function (Popcorn) {
-
-  var container = {},
-      spanLocation = 0,
-      setupContainer = function( target ) {
-
-        container[ target ] = document.createElement( "div" );
-
-        var t = document.getElementById( target );
-        t && t.appendChild( container[ target ] );
-        
-        container[ target ].style.height = "100%";
-        container[ target ].style.position = "relative";
-        
-        return container[ target ];
-      },
-      // creates an object of supported, cross platform css transitions
-      span = document.createElement( "span" ),
-      prefixes = [ "webkit", "Moz", "ms", "O", "" ],
-      specProp = [ "Transform", "TransitionDuration", "TransitionTimingFunction" ],
-      supports = {},
-      prop;
-
-  document.getElementsByTagName( "head" )[ 0 ].appendChild( span );
-
-  for ( var sIdx = 0, sLen = specProp.length; sIdx < sLen; sIdx++ ) {
-
-    for ( var pIdx = 0, pLen = prefixes.length; pIdx < pLen; pIdx++ ) {
-
-      prop = prefixes[ pIdx ] + specProp[ sIdx ];
-
-      if ( prop in span.style ) {
-
-        supports[ specProp[ sIdx ].toLowerCase() ] = prop;
-        break;
-      }
-    }
-  }
-
-  // Garbage collect support test span
-  document.getElementsByTagName( "head" )[ 0 ].appendChild( span );
-
-  /**
-   * Word River popcorn plug-in 
-   * Displays a string of text, fading it in and out 
-   * while transitioning across the height of the parent container
-   * for the duration of the instance  (duration = end - start)
-   *  
-   * @param {Object} options
-   * 
-   * Example:
-     var p = Popcorn( '#video' )
-        .wordriver({
-          start: 5,                      // When to begin the Word River animation
-          end: 15,                       // When to finish the Word River animation
-          text: 'Hello World',           // The text you want to be displayed by Word River
-          target: 'wordRiverDiv',        // The target div to append the text to
-          color: "blue"                  // The color of the text. (can be Hex value i.e. #FFFFFF )
-        } )
-   *
-   */
-
-  Popcorn.plugin( "wordriver" , {
-    
-      manifest: {
-        about:{
-          name: "Popcorn WordRiver Plugin"
-        },
-        options:{
-          start    : {elem:'input', type:'text', label:'In'},
-          end      : {elem:'input', type:'text', label:'Out'},
-          target  :  'wordriver-container',
-          text     : {elem:'input', type:'text', label:'Text'},
-          color    : {elem:'input', type:'text', label:'Color'}
-        }
-      },
-
-      _setup: function( options ) {
-
-        if ( !document.getElementById( options.target ) && Popcorn.plugin.debug ) {
-          throw new Error( "target container doesn't exist" );
-        } 
-
-        options._duration = options.end - options.start;
-        options._container = container[ options.target ] || setupContainer( options.target );
-
-        options.word = document.createElement( "span" );
-        options.word.style.position = "absolute";
-
-        options.word.style.whiteSpace = "nowrap";
-        options.word.style.opacity = 0;
-
-        options.word.style.MozTransitionProperty = "opacity, -moz-transform";
-        options.word.style.webkitTransitionProperty = "opacity, -webkit-transform";
-        options.word.style.OTransitionProperty = "opacity, -o-transform";
-        options.word.style.transitionProperty = "opacity, transform";
-
-        options.word.style[ supports.transitionduration ] = 1 + "s, " + options._duration + "s";
-        options.word.style[ supports.transitiontimingfunction ] = "linear";
-
-        options.word.innerHTML = options.text;
-        options.word.style.color = options.color || "black";
-      },
-      start: function( event, options ){
-
-        options._container.appendChild( options.word );
-
-        // Resets the transform when changing to a new currentTime before the end event occurred.
-        options.word.style[ supports.transform ] = "";
-
-        options.word.style.fontSize = ~~( 30 + 20 * Math.random() ) + "px";
-        spanLocation = spanLocation % ( options._container.offsetWidth - options.word.offsetWidth );
-        options.word.style.left = spanLocation + "px";
-        spanLocation += options.word.offsetWidth + 10;
-        options.word.style[ supports.transform ] = "translateY(" +
-          ( options._container.offsetHeight - options.word.offsetHeight ) + "px)";
-
-        options.word.style.opacity = 1;
-
-        // automatically clears the word based on time
-        setTimeout( function() {
-
-		      options.word.style.opacity = 0;
-        // ensures at least one second exists, because the fade animation is 1 second
-		    }, ( ( (options.end - options.start) - 1 ) || 1 ) * 1000 );
-      },
-      end: function( event, options ){
-
-        // manually clears the word based on user interaction
-        options.word.style.opacity = 0;
-      },
-      _teardown: function( options ) {
-
-        var target = document.getElementById( options.target );
-        // removes word span from generated container
-        options.word.parentNode && options._container.removeChild( options.word );
-
-        // if no more word spans exist in container, remove container
-        container[ options.target ] &&
-          !container[ options.target ].childElementCount &&
-          target && target.removeChild( container[ options.target ] ) &&
-          delete container[ options.target ];
-      }
-  });
-
-})( Popcorn );
 /**
  * Processing Popcorn Plug-In
  *
@@ -5489,6 +4648,262 @@ document.addEventListener( "click", function( event ) {
     }
   });
 }( Popcorn ));
+// PLUGIN: Subtitle
+
+(function ( Popcorn ) {
+
+  var i = 0,
+      createDefaultContainer = function( context ) {
+
+        var ctxContainer = context.container = document.createElement( "div" ),
+            style = ctxContainer.style,
+            media = context.media;
+
+        var updatePosition = function() {
+          var position = context.position();
+          // the video element must have height and width defined
+          style.fontSize = "18px";
+          style.width = media.offsetWidth + "px";
+          style.top = position.top  + media.offsetHeight - ctxContainer.offsetHeight - 40 + "px";
+          style.left = position.left + "px";
+
+          setTimeout( updatePosition, 10 );
+        };
+
+        ctxContainer.id = Popcorn.guid();
+        style.position = "absolute";
+        style.color = "white";
+        style.textShadow = "black 2px 2px 6px";
+        style.fontWeight = "bold";
+        style.textAlign = "center";
+
+        updatePosition();
+
+        context.media.parentNode.appendChild( ctxContainer );
+      };
+
+  /**
+   * Subtitle popcorn plug-in 
+   * Displays a subtitle over the video, or in the target div
+   * Options parameter will need a start, and end.
+   * Optional parameters are target and text.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing
+   * Target is the id of the document element that the content is
+   *  appended to, this target element must exist on the DOM
+   * Text is the text of the subtitle you want to display.
+   *
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+        .subtitle({
+          start:            5,                 // seconds, mandatory
+          end:              15,                // seconds, mandatory
+          text:             'Hellow world',    // optional
+          target:           'subtitlediv',     // optional
+        } )
+   *
+   */
+
+  Popcorn.plugin( "subtitle" , {
+    
+      manifest: {
+        about: {
+          name: "Popcorn Subtitle Plugin",
+          version: "0.1",
+          author: "Scott Downe",
+          website: "http://scottdowne.wordpress.com/"
+        },
+        options: {
+          start: {
+            elem: "input", 
+            type: "text", 
+            label: "In"
+          },
+          end: {
+            elem: "input", 
+            type: "text", 
+            label: "Out"
+          },
+          target: "subtitle-container",
+          text: {
+            elem: "input", 
+            type: "text", 
+            label: "Text"
+          }
+        }
+      },
+
+      _setup: function( options ) {
+        var newdiv = document.createElement( "div" );
+
+        newdiv.id = "subtitle-" + i++;
+        newdiv.style.display = "none";
+
+        // Creates a div for all subtitles to use
+        ( !this.container && ( !options.target || options.target === "subtitle-container" ) ) && 
+          createDefaultContainer( this );
+
+        // if a target is specified, use that
+        if ( options.target && options.target !== "subtitle-container" ) {
+          options.container = document.getElementById( options.target );
+        } else { 
+          // use shared default container
+          options.container = this.container;
+        }
+
+        document.getElementById( options.container.id ) && document.getElementById( options.container.id ).appendChild( newdiv );
+        options.innerContainer = newdiv;
+
+        options.showSubtitle = function() {
+          options.innerContainer.innerHTML = options.text;
+        };
+      },
+      /**
+       * @member subtitle 
+       * The start function will be executed when the currentTime 
+       * of the video  reaches the start time provided by the 
+       * options variable
+       */
+      start: function( event, options ){
+        options.innerContainer.style.display = "inline";
+        options.showSubtitle( options, options.text );
+      },
+      /**
+       * @member subtitle 
+       * The end function will be executed when the currentTime 
+       * of the video  reaches the end time provided by the 
+       * options variable
+       */
+      end: function( event, options ) {
+        options.innerContainer.style.display = "none";
+        options.innerContainer.innerHTML = "";
+      },
+
+      _teardown: function ( options ) {
+        options.container.removeChild( options.innerContainer );
+      }
+   
+  });
+
+})( Popcorn );
+// PLUGIN: tagthisperson
+
+(function (Popcorn) {
+    
+  var peopleArray = [];
+  // one People object per options.target
+  var People = function() {
+    this.name = "";
+    this.contains = { };
+    this.toString = function() {
+      var r = [];
+      for ( var j in this.contains ) {
+        if ( this.contains.hasOwnProperty( j ) ) {
+          r.push( " " + this.contains[ j ] );
+        }
+      }
+      return r.toString();
+    };
+  };
+  
+  /**
+   * tagthisperson popcorn plug-in 
+   * Adds people's names to an element on the page.
+   * Options parameter will need a start, end, target, image and person.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing 
+   * Person is the name of the person who you want to tag
+   * Image is the url to the image of the person - optional
+   * href is the url to the webpage of the person - optional   
+   * Target is the id of the document element that the text needs to be 
+   * attached to, this target element must exist on the DOM
+   * 
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+        .tagthisperson({
+          start: 5, // seconds
+          end: 15, // seconds
+          person: '@annasob',
+          image:  'http://newshour.s3.amazonaws.com/photos%2Fspeeches%2Fguests%2FRichardNSmith_thumbnail.jpg',
+          href:   'http://annasob.wordpress.com',
+          target: 'tagdiv'
+        } )
+   *
+   */
+  Popcorn.plugin( "tagthisperson" , ( function() {
+    
+    return {
+    
+      _setup: function( options ) {
+        var exists = false,
+            target = document.getElementById( options.target );
+
+        if ( !target && Popcorn.plugin.debug ) {
+          throw new Error( "target container doesn't exist" );
+        }
+
+        // loop through the existing objects to ensure no duplicates
+        // the idea here is to have one object per unique options.target
+        for ( var i = 0; i < peopleArray.length; i++ ) {
+          if ( peopleArray[ i ].name === options.target ) {
+            options._p = peopleArray[ i ];  
+            exists = true;
+            break;
+          }
+        }
+        if ( !exists ) {
+          options._p = new People();
+          options._p.name = options.target;
+          peopleArray.push( options._p );
+        }
+      },
+      /**
+       * @member tagthisperson 
+       * The start function will be executed when the currentTime 
+       * of the video  reaches the start time provided by the 
+       * options variable
+       */
+      start: function( event, options ){
+        options._p.contains[ options.person ] = ( options.image ) ? "<img src='" + options.image + "'/> " : "" ;
+        options._p.contains[ options.person ] += ( options.href ) ? "<a href='" + options.href + "' target='_blank'> " + options.person + "</a>" : options.person ;
+
+        document.getElementById( options.target ).innerHTML = options._p.toString();
+      },
+      /**
+       * @member tagthisperson 
+       * The end function will be executed when the currentTime 
+       * of the video  reaches the end time provided by the 
+       * options variable
+       */
+      end: function( event, options ){
+        delete options._p.contains[ options.person ];
+
+        document.getElementById( options.target ).innerHTML = options._p.toString();
+      }
+   };
+  })(),
+  {
+    about:{
+      name: "Popcorn tagthisperson Plugin",
+      version: "0.1",
+      author: "@annasob",
+      website: "annasob.wordpress.com"
+    },
+    options:{
+      start    : {elem:'input', type:'text', label:'In'},
+      end      : {elem:'input', type:'text', label:'Out'},
+      target   : 'tagthisperson-container',
+      person   : {elem:'input', type:'text', label:'Name'},
+      image    : {elem:'input', type:'text', label:'Image Src'},
+      href     : {elem:'input', type:'text', label:'URL'}   
+    }
+  });
+
+})( Popcorn );
 // PLUGIN: Timeline
 (function ( Popcorn ) {
 
@@ -5639,6 +5054,591 @@ document.addEventListener( "click", function( event ) {
     }
   });
   
+})( Popcorn );
+// PLUGIN: TWITTER
+
+(function (Popcorn) {
+  var scriptLoading = false;
+
+  /**
+   * Twitter popcorn plug-in 
+   * Appends a Twitter widget to an element on the page.
+   * Options parameter will need a start, end, target and source.
+   * Optional parameters are height and width.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing
+   * Src is the hash tag or twitter user to get tweets from
+   * Target is the id of the document element that the images are
+   *  appended to, this target element must exist on the DOM
+   * Height is the height of the widget, defaults to 200
+   * Width is the width of the widget, defaults to 250
+   * 
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+        .twitter({
+          start:          5,                // seconds, mandatory
+          end:            15,               // seconds, mandatory
+          src:            '@stevesong',     // mandatory, also accepts hash tags
+          height:         200,              // optional
+          width:          250,              // optional
+          target:         'twitterdiv'      // mandatory
+        } )
+   *
+   */
+
+  Popcorn.plugin( "twitter" , {
+
+      manifest: {
+        about:{
+          name:    "Popcorn Twitter Plugin",
+          version: "0.1",
+          author:  "Scott Downe",
+          website: "http://scottdowne.wordpress.com/"
+        },
+        options:{
+          start   : {elem:'input', type:'number', label:'In'},
+          end     : {elem:'input', type:'number', label:'Out'},
+          src     : {elem:'input', type:'text',   label:'Source'},
+          target  : 'twitter-container',
+          height  : {elem:'input', type:'number', label:'Height'},
+          width   : {elem:'input', type:'number', label:'Width'}
+        }
+      },
+
+      _setup: function( options ) {
+
+        if ( !window.TWTR && !scriptLoading ) {
+          scriptLoading = true;
+          Popcorn.getScript("http://widgets.twimg.com/j/2/widget.js");
+        }
+
+        var target = document.getElementById( options.target );
+
+        // setup widget div that is unique per track
+        options.container = document.createElement( 'div' ); // create the div to store the widget
+        options.container.setAttribute('id', Popcorn.guid()); // use this id to connect it to the widget
+        options.container.style.display = "none"; // display none by default
+
+        if ( !target && Popcorn.plugin.debug ) {
+          throw new Error( "target container doesn't exist" );
+        }
+         // add the widget's div to the target div
+        target && target.appendChild( options.container );
+
+        // setup info for the widget
+        var src     = options.src || "",
+            width   = options.width || 250,
+            height  = options.height || 200,
+            profile = /^@/.test( src ),
+            hash    = /^#/.test( src ),
+            widgetOptions = {
+              version: 2,
+              id: options.container.getAttribute( 'id' ),  // use this id to connect it to the div
+              rpp: 30,
+              width: width,
+              height: height,
+              interval: 6000,
+              theme: {
+                shell: {
+                  background: '#ffffff',
+                  color: '#000000'
+                },
+                tweets: {
+                  background: '#ffffff',
+                  color: '#444444',
+                  links: '#1985b5'
+                }
+              },
+              features: {
+                loop: true,
+                timestamp: true,
+                avatars: true,
+                hashtags: true,
+                toptweets: true,
+                live: true,
+                scrollbar: false,
+                behavior: 'default'
+              }
+            };
+
+        // create widget
+        var isReady = function( that ) {
+          if ( window.TWTR ) {
+            if ( profile ) {
+
+              widgetOptions.type = "profile";
+
+              new TWTR.Widget( widgetOptions ).render().setUser( src ).start();
+
+            } else if ( hash ) {
+
+              widgetOptions.type = "search";
+              widgetOptions.search = src;
+              widgetOptions.subject = src;
+
+              new TWTR.Widget( widgetOptions ).render().start();
+
+            }
+          } else {
+            setTimeout( function() {
+              isReady( that );
+            }, 1);
+          }
+        };
+
+        isReady( this );
+      },
+
+      /**
+       * @member Twitter 
+       * The start function will be executed when the currentTime 
+       * of the video  reaches the start time provided by the 
+       * options variable
+       */
+      start: function( event, options ) {
+        options.container.style.display = "inline";
+      },
+
+      /**
+       * @member Twitter 
+       * The end function will be executed when the currentTime 
+       * of the video  reaches the end time provided by the 
+       * options variable
+       */
+      end: function( event, options ) {
+        options.container.style.display = "none";
+      },
+      _teardown: function( options ) {
+
+        document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options.container );
+      }
+    });
+
+})( Popcorn );
+// PLUGIN: WEBPAGE
+
+(function (Popcorn) {
+  
+  /**
+   * Webpages popcorn plug-in 
+   * Creates an iframe showing a website specified by the user
+   * Options parameter will need a start, end, id, target and src.
+   * Start is the time that you want this plug-in to execute
+   * End is the time that you want this plug-in to stop executing 
+   * Id is the id that you want assigned to the iframe
+   * Target is the id of the document element that the iframe needs to be attached to, 
+   * this target element must exist on the DOM
+   * Src is the url of the website that you want the iframe to display
+   *
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn('#video')
+        .webpage({
+          id: "webpages-a", 
+          start: 5, // seconds
+          end: 15, // seconds
+          src: 'http://www.webmademovies.org',
+          target: 'webpagediv'
+        } )
+   *
+   */
+  Popcorn.plugin( "webpage" , {
+    manifest: {
+      about:{
+        name: "Popcorn Webpage Plugin",
+        version: "0.1",
+        author: "@annasob",
+        website: "annasob.wordpress.com"
+      },
+      options:{
+        id     : {elem:'input', type:'text', label:'Id'},
+        start  : {elem:'input', type:'text', label:'In'},
+        end    : {elem:'input', type:'text', label:'Out'},
+        src    : {elem:'input', type:'text', label:'Src'},
+        target : 'iframe-container'
+      }
+    },
+    _setup : function( options ) {
+
+      var target = document.getElementById( options.target );
+
+      // make an iframe
+      options._iframe  = document.createElement( 'iframe' );
+      options._iframe.setAttribute('width', "100%");
+      options._iframe.setAttribute('height', "100%");
+      options._iframe.id  = options.id;
+      options._iframe.src = options.src;
+      options._iframe.style.display = 'none';
+
+      if ( !target && Popcorn.plugin.debug ) {
+        throw new Error( "target container doesn't exist" );
+      }
+
+      // add the hidden iframe to the DOM
+      target && target.appendChild(options._iframe);
+      
+    },
+    /**
+     * @member webpage 
+     * The start function will be executed when the currentTime 
+     * of the video  reaches the start time provided by the 
+     * options variable
+     */
+    start: function(event, options){
+      // make the iframe visible
+      options._iframe.src = options.src;
+      options._iframe.style.display = 'inline';
+    },
+    /**
+     * @member webpage 
+     * The end function will be executed when the currentTime 
+     * of the video  reaches the end time provided by the 
+     * options variable
+     */
+    end: function(event, options){
+      // make the iframe invisible
+      options._iframe.style.display = 'none';
+    },
+    _teardown: function( options ) {
+
+      document.getElementById( options.target ) && document.getElementById( options.target ).removeChild( options._iframe );
+    }
+  });
+})( Popcorn );
+// PLUGIN: WIKIPEDIA
+
+
+var wikiCallback;
+
+(function ( Popcorn ) {
+  
+  /**
+   * Wikipedia popcorn plug-in 
+   * Displays a wikipedia aricle in the target specified by the user by using
+   * new DOM element instead overwriting them
+   * Options parameter will need a start, end, target, lang, src, title and numberofwords.
+   * -Start is the time that you want this plug-in to execute
+   * -End is the time that you want this plug-in to stop executing 
+   * -Target is the id of the document element that the text from the article needs to be  
+   * attached to, this target element must exist on the DOM
+   * -Lang (optional, defaults to english) is the language in which the article is in.
+   * -Src is the url of the article 
+   * -Title (optional) is the title of the article
+   * -numberofwords (optional, defaults to 200) is  the number of words you want displaid.  
+   *
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn("#video")
+        .wikipedia({
+          start: 5, // seconds
+          end: 15, // seconds
+          src: "http://en.wikipedia.org/wiki/Cape_Town",
+          target: "wikidiv"
+        } )
+   *
+   */
+  Popcorn.plugin( "wikipedia" , {
+      
+    manifest: {
+      about:{
+        name: "Popcorn Wikipedia Plugin",
+        version: "0.1",
+        author: "@annasob",
+        website: "annasob.wordpress.com"
+      },
+      options:{
+        start: {
+          elem: "input", 
+          type: "text", 
+          label: "In"
+        },
+        end: {
+          elem: "input", 
+          type: "text", 
+          label: "Out"
+        },
+        lang: {
+          elem: "input", 
+          type: "text", 
+          label: "Language"
+        },
+        src: {
+          elem: "input", 
+          type: "text", 
+          label: "Src"
+        },
+        title: {
+          elem: "input", 
+          type: "text", 
+          label: "Title"
+        },
+        numberofwords: {
+          elem: "input", 
+          type: "text", 
+          label: "Num Of Words"
+        },
+        target: "wikipedia-container"
+      }
+    },
+    /**
+     * @member wikipedia 
+     * The setup function will get all of the needed 
+     * items in place before the start function is called. 
+     * This includes getting data from wikipedia, if the data
+     * is not received and processed before start is called start 
+     * will not do anything
+     */
+    _setup : function( options ) {
+      // declare needed variables
+      // get a guid to use for the global wikicallback function
+      var  _text, _guid = Popcorn.guid(); 
+      
+      // if the user didn't specify a language default to english
+      if ( !options.lang ) { 
+        options.lang = "en"; 
+      }
+
+      // if the user didn't specify number of words to use default to 200 
+      options.numberofwords  = options.numberofwords || 200;
+            
+      // wiki global callback function with a unique id
+      // function gets the needed information from wikipedia
+      // and stores it by appending values to the options object
+      window[ "wikiCallback" + _guid ]  = function ( data ) { 
+
+        options._link = document.createElement( "a" );
+        options._link.setAttribute( "href", options.src );
+        options._link.setAttribute( "target", "_blank" );
+
+        // add the title of the article to the link
+        options._link.innerHTML = options.title || data.parse.displaytitle;
+
+        // get the content of the wiki article
+        options._desc = document.createElement( "p" );
+
+        // get the article text and remove any special characters
+        _text = data.parse.text[ "*" ].substr( data.parse.text[ "*" ].indexOf( "<p>" ) );
+        _text = _text.replace( /((<(.|\n)+?>)|(\((.*?)\) )|(\[(.*?)\]))/g, "" );
+        
+        _text = _text.split( " " );
+        options._desc.innerHTML = ( _text.slice( 0, ( _text.length >= options.numberofwords ? options.numberofwords : _text.length ) ).join (" ") + " ..." ) ;
+        
+        options._fired = true;
+      };
+      
+      if ( options.src ) {
+        Popcorn.getScript( "http://" + options.lang + ".wikipedia.org/w/api.php?action=parse&props=text&page=" + 
+          options.src.slice( options.src.lastIndexOf("/")+1)  + "&format=json&callback=wikiCallback" + _guid);
+      } else if ( Popcorn.plugin.debug ) {
+        throw new Error( "Wikipedia plugin needs a 'src'" );
+      }
+
+    },
+    /**
+     * @member wikipedia 
+     * The start function will be executed when the currentTime 
+     * of the video  reaches the start time provided by the 
+     * options variable
+     */
+    start: function( event, options ){
+      // dont do anything if the information didn't come back from wiki
+      var isReady = function () {
+        
+        if ( !options._fired ) {
+          setTimeout( function () {
+            isReady();
+          }, 13);
+        } else {
+      
+          if ( options._link && options._desc ) {
+            if ( document.getElementById( options.target ) ) {
+              document.getElementById( options.target ).appendChild( options._link );
+              document.getElementById( options.target ).appendChild( options._desc );
+              options._added = true;
+            }
+          }
+        }
+      };
+      
+      isReady();
+    },
+    /**
+     * @member wikipedia 
+     * The end function will be executed when the currentTime 
+     * of the video  reaches the end time provided by the 
+     * options variable
+     */
+    end: function( event, options ){
+      // ensure that the data was actually added to the 
+      // DOM before removal
+      if ( options._added ) {
+        document.getElementById( options.target ).removeChild( options._link );
+        document.getElementById( options.target ).removeChild( options._desc );
+      }
+    },
+
+    _teardown: function( options ){
+
+      if ( options._added ) {
+        options._link.parentNode && document.getElementById( options.target ).removeChild( options._link );
+        options._desc.parentNode && document.getElementById( options.target ).removeChild( options._desc );
+        delete options.target;
+      }
+    }
+  });
+
+})( Popcorn );
+// PLUGIN: Wordriver
+
+(function (Popcorn) {
+
+  var container = {},
+      spanLocation = 0,
+      setupContainer = function( target ) {
+
+        container[ target ] = document.createElement( "div" );
+
+        var t = document.getElementById( target );
+        t && t.appendChild( container[ target ] );
+        
+        container[ target ].style.height = "100%";
+        container[ target ].style.position = "relative";
+        
+        return container[ target ];
+      },
+      // creates an object of supported, cross platform css transitions
+      span = document.createElement( "span" ),
+      prefixes = [ "webkit", "Moz", "ms", "O", "" ],
+      specProp = [ "Transform", "TransitionDuration", "TransitionTimingFunction" ],
+      supports = {},
+      prop;
+
+  document.getElementsByTagName( "head" )[ 0 ].appendChild( span );
+
+  for ( var sIdx = 0, sLen = specProp.length; sIdx < sLen; sIdx++ ) {
+
+    for ( var pIdx = 0, pLen = prefixes.length; pIdx < pLen; pIdx++ ) {
+
+      prop = prefixes[ pIdx ] + specProp[ sIdx ];
+
+      if ( prop in span.style ) {
+
+        supports[ specProp[ sIdx ].toLowerCase() ] = prop;
+        break;
+      }
+    }
+  }
+
+  // Garbage collect support test span
+  document.getElementsByTagName( "head" )[ 0 ].appendChild( span );
+
+  /**
+   * Word River popcorn plug-in 
+   * Displays a string of text, fading it in and out 
+   * while transitioning across the height of the parent container
+   * for the duration of the instance  (duration = end - start)
+   *  
+   * @param {Object} options
+   * 
+   * Example:
+     var p = Popcorn( '#video' )
+        .wordriver({
+          start: 5,                      // When to begin the Word River animation
+          end: 15,                       // When to finish the Word River animation
+          text: 'Hello World',           // The text you want to be displayed by Word River
+          target: 'wordRiverDiv',        // The target div to append the text to
+          color: "blue"                  // The color of the text. (can be Hex value i.e. #FFFFFF )
+        } )
+   *
+   */
+
+  Popcorn.plugin( "wordriver" , {
+    
+      manifest: {
+        about:{
+          name: "Popcorn WordRiver Plugin"
+        },
+        options:{
+          start    : {elem:'input', type:'text', label:'In'},
+          end      : {elem:'input', type:'text', label:'Out'},
+          target  :  'wordriver-container',
+          text     : {elem:'input', type:'text', label:'Text'},
+          color    : {elem:'input', type:'text', label:'Color'}
+        }
+      },
+
+      _setup: function( options ) {
+
+        if ( !document.getElementById( options.target ) && Popcorn.plugin.debug ) {
+          throw new Error( "target container doesn't exist" );
+        } 
+
+        options._duration = options.end - options.start;
+        options._container = container[ options.target ] || setupContainer( options.target );
+
+        options.word = document.createElement( "span" );
+        options.word.style.position = "absolute";
+
+        options.word.style.whiteSpace = "nowrap";
+        options.word.style.opacity = 0;
+
+        options.word.style.MozTransitionProperty = "opacity, -moz-transform";
+        options.word.style.webkitTransitionProperty = "opacity, -webkit-transform";
+        options.word.style.OTransitionProperty = "opacity, -o-transform";
+        options.word.style.transitionProperty = "opacity, transform";
+
+        options.word.style[ supports.transitionduration ] = 1 + "s, " + options._duration + "s";
+        options.word.style[ supports.transitiontimingfunction ] = "linear";
+
+        options.word.innerHTML = options.text;
+        options.word.style.color = options.color || "black";
+      },
+      start: function( event, options ){
+
+        options._container.appendChild( options.word );
+
+        // Resets the transform when changing to a new currentTime before the end event occurred.
+        options.word.style[ supports.transform ] = "";
+
+        options.word.style.fontSize = ~~( 30 + 20 * Math.random() ) + "px";
+        spanLocation = spanLocation % ( options._container.offsetWidth - options.word.offsetWidth );
+        options.word.style.left = spanLocation + "px";
+        spanLocation += options.word.offsetWidth + 10;
+        options.word.style[ supports.transform ] = "translateY(" +
+          ( options._container.offsetHeight - options.word.offsetHeight ) + "px)";
+
+        options.word.style.opacity = 1;
+
+        // automatically clears the word based on time
+        setTimeout( function() {
+
+		      options.word.style.opacity = 0;
+        // ensures at least one second exists, because the fade animation is 1 second
+		    }, ( ( (options.end - options.start) - 1 ) || 1 ) * 1000 );
+      },
+      end: function( event, options ){
+
+        // manually clears the word based on user interaction
+        options.word.style.opacity = 0;
+      },
+      _teardown: function( options ) {
+
+        var target = document.getElementById( options.target );
+        // removes word span from generated container
+        options.word.parentNode && options._container.removeChild( options.word );
+
+        // if no more word spans exist in container, remove container
+        container[ options.target ] &&
+          !container[ options.target ].childElementCount &&
+          target && target.removeChild( container[ options.target ] ) &&
+          delete container[ options.target ];
+      }
+  });
+
 })( Popcorn );
 // PARSER: 0.3 JSON
 
@@ -6662,6 +6662,542 @@ document.addEventListener( "click", function( event ) {
     }
   };
 })( window, document );
+/*!
+ * Popcorn.sequence
+ *
+ * Copyright 2011, Rick Waldron
+ * Licensed under MIT license.
+ *
+ */
+
+/* jslint forin: true, maxerr: 50, indent: 4, es5: true  */
+/* global Popcorn: true */
+
+// Requires Popcorn.js
+(function( global, Popcorn ) {
+
+  // TODO: as support increases, migrate to element.dataset 
+  var doc = global.document, 
+      location = global.location,
+      rprotocol = /:\/\//, 
+      // TODO: better solution to this sucky stop-gap
+      lochref = location.href.replace( location.href.split("/").slice(-1)[0], "" ), 
+      // privately held
+      range = function(start, stop, step) {
+
+        start = start || 0;
+        stop = ( stop || start || 0 ) + 1;
+        step = step || 1;
+            
+        var len = Math.ceil((stop - start) / step) || 0,
+            idx = 0,
+            range = [];
+
+        range.length = len;
+
+        while (idx < len) {
+         range[idx++] = start;
+         start += step;
+        }
+        return range;
+      };
+
+  Popcorn.sequence = function( parent, list ) {
+    return new Popcorn.sequence.init( parent, list );
+  };
+
+  Popcorn.sequence.init = function( parent, list ) {
+    
+    // Video element
+    this.parent = doc.getElementById( parent );
+    
+    // Store ref to a special ID
+    this.seqId = Popcorn.guid( "__sequenced" );
+
+    // List of HTMLVideoElements 
+    this.queue = [];
+
+    // List of Popcorn objects
+    this.playlist = [];
+
+    // Lists of in/out points
+    this.inOuts = {
+
+      // Stores the video in/out times for each video in sequence
+      ofVideos: [], 
+
+      // Stores the clip in/out times for each clip in sequences
+      ofClips: []
+
+    };
+
+    // Store first video dimensions
+    this.dims = {
+      width: 0, //this.video.videoWidth,
+      height: 0 //this.video.videoHeight
+    };
+
+    this.active = 0;
+    this.cycling = false;
+    this.playing = false;
+
+    this.times = {
+      last: 0
+    };
+
+    // Store event pointers and queues
+    this.events = {
+
+    };
+
+    var self = this, 
+        clipOffset = 0;
+
+    // Create `video` elements
+    Popcorn.forEach( list, function( media, idx ) {
+
+      var video = doc.createElement( "video" );
+
+      video.preload = "auto";
+
+      // Setup newly created video element
+      video.controls = true;
+
+      // If the first, show it, if the after, hide it
+      video.style.display = ( idx && "none" ) || "" ;
+
+      // Seta registered sequence id
+      video.id = self.seqId + "-" + idx ;
+
+      // Push this video into the sequence queue
+      self.queue.push( video );
+
+      var //satisfy lint
+       mIn = media["in"], 
+       mOut = media["out"];
+       
+      // Push the in/out points into sequence ioVideos
+      self.inOuts.ofVideos.push({ 
+        "in": ( mIn !== undefined && mIn ) || 1,
+        "out": ( mOut !== undefined && mOut ) || 0
+      });
+
+      self.inOuts.ofVideos[ idx ]["out"] = self.inOuts.ofVideos[ idx ]["out"] || self.inOuts.ofVideos[ idx ]["in"] + 2;
+      
+      // Set the sources
+      video.src = !rprotocol.test( media.src ) ? lochref + media.src : media.src;
+
+      // Set some squence specific data vars
+      video.setAttribute("data-sequence-owner", parent );
+      video.setAttribute("data-sequence-guid", self.seqId );
+      video.setAttribute("data-sequence-id", idx );
+      video.setAttribute("data-sequence-clip", [ self.inOuts.ofVideos[ idx ]["in"], self.inOuts.ofVideos[ idx ]["out"] ].join(":") );
+
+      // Append the video to the parent element
+      self.parent.appendChild( video );
+      
+
+      self.playlist.push( Popcorn("#" + video.id ) );      
+
+    });
+
+    self.inOuts.ofVideos.forEach(function( obj ) {
+
+      var clipDuration = obj["out"] - obj["in"], 
+          offs = {
+            "in": clipOffset,
+            "out": clipOffset + clipDuration
+          };
+
+      self.inOuts.ofClips.push( offs );
+      
+      clipOffset = offs["out"] + 1;
+    });
+
+    Popcorn.forEach( this.queue, function( media, idx ) {
+
+      function canPlayThrough( event ) {
+
+        // If this is idx zero, use it as dimension for all
+        if ( !idx ) {
+          self.dims.width = media.videoWidth;
+          self.dims.height = media.videoHeight;
+        }
+        
+        media.currentTime = self.inOuts.ofVideos[ idx ]["in"] - 0.5;
+
+        media.removeEventListener( "canplaythrough", canPlayThrough, false );
+
+        return true;
+      }
+
+      // Hook up event listeners for managing special playback 
+      media.addEventListener( "canplaythrough", canPlayThrough, false );
+
+      // TODO: consolidate & DRY
+      media.addEventListener( "play", function( event ) {
+
+        self.playing = true;
+
+      }, false );
+
+      media.addEventListener( "pause", function( event ) {
+
+        self.playing = false;
+
+      }, false );
+
+      media.addEventListener( "timeupdate", function( event ) {
+
+        var target = event.srcElement || event.target, 
+            seqIdx = +(  (target.dataset && target.dataset.sequenceId) || target.getAttribute("data-sequence-id") ), 
+            floor = Math.floor( media.currentTime );
+
+        if ( self.times.last !== floor && 
+              seqIdx === self.active ) {
+
+          self.times.last = floor;
+          
+          if ( floor === self.inOuts.ofVideos[ seqIdx ]["out"] ) {
+
+            Popcorn.sequence.cycle.call( self, seqIdx );
+          }
+        }
+      }, false );
+    });
+
+    return this;
+  };
+
+  Popcorn.sequence.init.prototype = Popcorn.sequence.prototype;
+
+  //  
+  Popcorn.sequence.cycle = function( idx ) {
+
+    if ( !this.queue ) {
+      Popcorn.error("Popcorn.sequence.cycle is not a public method");
+    }
+
+    var // Localize references
+    queue = this.queue, 
+    ioVideos = this.inOuts.ofVideos, 
+    current = queue[ idx ], 
+    nextIdx = 0, 
+    next, clip;
+
+    
+    var // Popcorn instances
+    $popnext, 
+    $popprev;
+
+
+    if ( queue[ idx + 1 ] ) {
+      nextIdx = idx + 1;
+    }
+
+    // Reset queue
+    if ( !queue[ idx + 1 ] ) {
+
+      nextIdx = 0;
+      this.playlist[ idx ].pause();
+      
+    } else {
+    
+      next = queue[ nextIdx ];
+      clip = ioVideos[ nextIdx ];
+
+      // Constrain dimentions
+      Popcorn.extend( next, {
+        width: this.dims.width, 
+        height: this.dims.height
+      });
+
+      $popnext = this.playlist[ nextIdx ];
+      $popprev = this.playlist[ idx ];
+
+      // When not resetting to 0
+      current.pause();
+
+      this.active = nextIdx;
+      this.times.last = clip["in"] - 1;
+
+      // Play the next video in the sequence
+      $popnext.currentTime( clip["in"] );
+
+      $popnext[ nextIdx ? "play" : "pause" ]();
+
+      // Trigger custom cycling event hook
+      this.trigger( "cycle", { 
+
+        position: {
+          previous: idx, 
+          current: nextIdx
+        }
+        
+      });
+      
+      // Set the previous back to it's beginning time
+      // $popprev.currentTime( ioVideos[ idx ].in );
+
+      if ( nextIdx ) {
+        // Hide the currently ending video
+        current.style.display = "none";
+        // Show the next video in the sequence    
+        next.style.display = "";    
+      }
+
+      this.cycling = false;
+    }
+
+    return this;
+  };
+
+  var excludes = [ "timeupdate", "play", "pause" ];
+  
+  // Sequence object prototype
+  Popcorn.extend( Popcorn.sequence.prototype, {
+
+    // Returns Popcorn object from sequence at index
+    eq: function( idx ) {
+      return this.playlist[ idx ];
+    }, 
+    // Remove a sequence from it's playback display container
+    remove: function() {
+      this.parent.innerHTML = null;
+    },
+    // Returns Clip object from sequence at index
+    clip: function( idx ) {
+      return this.inOuts.ofVideos[ idx ];
+    },
+    // Returns sum duration for all videos in sequence
+    duration: function() {
+
+      var ret = 0, 
+          seq = this.inOuts.ofClips, 
+          idx = 0;
+
+      for ( ; idx < seq.length; idx++ ) {
+        ret += seq[ idx ]["out"] - seq[ idx ]["in"] + 1;
+      }
+
+      return ret - 1;
+    },
+
+    play: function() {
+
+      this.playlist[ this.active ].play();
+
+      return this;
+    },
+    // Attach an event to a single point in time
+    exec: function ( time, fn ) {
+
+      var index = this.active;
+      
+      this.inOuts.ofClips.forEach(function( off, idx ) {
+        if ( time >= off["in"] && time <= off["out"] ) {
+          index = idx;
+        }
+      });
+
+      //offsetBy = time - self.inOuts.ofVideos[ index ].in;
+      
+      time += this.inOuts.ofVideos[ index ]["in"] - this.inOuts.ofClips[ index ]["in"];
+
+      // Creating a one second track event with an empty end
+      Popcorn.addTrackEvent( this.playlist[ index ], {
+        start: time - 1,
+        end: time,
+        _running: false,
+        _natives: {
+          start: fn || Popcorn.nop,
+          end: Popcorn.nop,
+          type: "exec"
+        }
+      });
+
+      return this;
+    },
+    // Binds event handlers that fire only when all 
+    // videos in sequence have heard the event
+    listen: function( type, callback ) {
+
+      var self = this, 
+          seq = this.playlist,
+          total = seq.length, 
+          count = 0, 
+          fnName;
+
+      if ( !callback ) {
+        callback = Popcorn.nop;
+      }
+
+      // Handling for DOM and Media events
+      if ( Popcorn.Events.Natives.indexOf( type ) > -1 ) {
+        Popcorn.forEach( seq, function( video ) {
+
+          video.listen( type, function( event ) {
+
+            event.active = self;
+            
+            if ( excludes.indexOf( type ) > -1 ) {
+
+              callback.call( video, event );
+
+            } else {
+              if ( ++count === total ) {
+                callback.call( video, event );
+              }
+            }
+          });
+        });
+
+      } else {
+
+        // If no events registered with this name, create a cache
+        if ( !this.events[ type ] ) {
+          this.events[ type ] = {};
+        }
+
+        // Normalize a callback name key
+        fnName = callback.name || Popcorn.guid( "__" + type );
+
+        // Store in event cache
+        this.events[ type ][ fnName ] = callback;
+      }
+
+      // Return the sequence object
+      return this;
+    }, 
+    unlisten: function( type, name ) {
+      // TODO: finish implementation
+    },
+    trigger: function( type, data ) {
+      var self = this;
+
+      // Handling for DOM and Media events
+      if ( Popcorn.Events.Natives.indexOf( type ) > -1 ) {
+
+        //  find the active video and trigger api events on that video.
+        return;
+
+      } else {
+
+        // Only proceed if there are events of this type
+        // currently registered on the sequence
+        if ( this.events[ type ] ) {
+
+          Popcorn.forEach( this.events[ type ], function( callback, name ) {
+            callback.call( self, { type: type }, data );
+          });
+
+        }
+      }
+
+      return this;
+    }
+  });
+
+
+  Popcorn.forEach( Popcorn.manifest, function( obj, plugin ) {
+
+    // Implement passthrough methods to plugins
+    Popcorn.sequence.prototype[ plugin ] = function( options ) {
+
+      // console.log( this, options );
+      var videos = {}, assignTo = [], 
+      idx, off, inOuts, inIdx, outIdx, keys, clip, clipInOut, clipRange;
+
+      for ( idx = 0; idx < this.inOuts.ofClips.length; idx++  ) {
+        // store reference 
+        off = this.inOuts.ofClips[ idx ];
+        // array to test against
+        inOuts = range( off["in"], off["out"] );
+
+        inIdx = inOuts.indexOf( options.start );
+        outIdx = inOuts.indexOf( options.end );
+
+        if ( inIdx > -1 ) {
+          videos[ idx ] = Popcorn.extend( {}, off, {
+            start: inOuts[ inIdx ],
+            clipIdx: inIdx
+          });
+        }
+
+        if ( outIdx > -1 ) {
+          videos[ idx ] = Popcorn.extend( {}, off, {
+            end: inOuts[ outIdx ], 
+            clipIdx: outIdx
+          });
+        }
+      }
+
+      keys = Object.keys( videos ).map(function( val ) {
+                return +val;
+              });
+
+      assignTo = range( keys[ 0 ], keys[ 1 ] );
+
+      //console.log( "PLUGIN CALL MAPS: ", videos, keys, assignTo );
+      for ( idx = 0; idx < assignTo.length; idx++ ) {
+
+        var compile = {},
+        play = assignTo[ idx ], 
+        vClip = videos[ play ];
+
+        if ( vClip ) {
+
+          // has instructions
+          clip = this.inOuts.ofVideos[ play ];
+          clipInOut = vClip.clipIdx;
+          clipRange = range( clip["in"], clip["out"] );
+
+          if ( vClip.start ) {
+            compile.start = clipRange[ clipInOut ];
+            compile.end = clipRange[ clipRange.length - 1 ];
+          }
+
+          if ( vClip.end ) {
+            compile.start = clipRange[ 0 ];
+            compile.end = clipRange[ clipInOut ];
+          }
+
+          //compile.start += 0.1;
+          //compile.end += 0.9;
+          
+        } else {
+
+          compile.start = this.inOuts.ofVideos[ play ]["in"];
+          compile.end = this.inOuts.ofVideos[ play ]["out"];
+
+          //compile.start += 0.1;
+          //compile.end += 0.9;
+          
+        }
+
+        // Handling full clip persistance 
+        //if ( compile.start === compile.end ) {
+          //compile.start -= 0.1;
+          //compile.end += 0.9;
+        //}
+
+        // Call the plugin on the appropriate Popcorn object in the playlist
+        // Merge original options object & compiled (start/end) object into
+        // a new fresh object
+        this.playlist[ play ][ plugin ]( 
+
+          Popcorn.extend( {}, options, compile )
+
+        );
+        
+      }
+
+      // Return the sequence object
+      return this;
+    };
+    
+  });
+})( this, Popcorn );
 // Popcorn Soundcloud Player Wrapper
 ( function( Popcorn, global ) {
   /**
@@ -8525,542 +9061,6 @@ var onYouTubePlayerReady;
 
 })( Popcorn );
 
-/*!
- * Popcorn.sequence
- *
- * Copyright 2011, Rick Waldron
- * Licensed under MIT license.
- *
- */
-
-/* jslint forin: true, maxerr: 50, indent: 4, es5: true  */
-/* global Popcorn: true */
-
-// Requires Popcorn.js
-(function( global, Popcorn ) {
-
-  // TODO: as support increases, migrate to element.dataset 
-  var doc = global.document, 
-      location = global.location,
-      rprotocol = /:\/\//, 
-      // TODO: better solution to this sucky stop-gap
-      lochref = location.href.replace( location.href.split("/").slice(-1)[0], "" ), 
-      // privately held
-      range = function(start, stop, step) {
-
-        start = start || 0;
-        stop = ( stop || start || 0 ) + 1;
-        step = step || 1;
-            
-        var len = Math.ceil((stop - start) / step) || 0,
-            idx = 0,
-            range = [];
-
-        range.length = len;
-
-        while (idx < len) {
-         range[idx++] = start;
-         start += step;
-        }
-        return range;
-      };
-
-  Popcorn.sequence = function( parent, list ) {
-    return new Popcorn.sequence.init( parent, list );
-  };
-
-  Popcorn.sequence.init = function( parent, list ) {
-    
-    // Video element
-    this.parent = doc.getElementById( parent );
-    
-    // Store ref to a special ID
-    this.seqId = Popcorn.guid( "__sequenced" );
-
-    // List of HTMLVideoElements 
-    this.queue = [];
-
-    // List of Popcorn objects
-    this.playlist = [];
-
-    // Lists of in/out points
-    this.inOuts = {
-
-      // Stores the video in/out times for each video in sequence
-      ofVideos: [], 
-
-      // Stores the clip in/out times for each clip in sequences
-      ofClips: []
-
-    };
-
-    // Store first video dimensions
-    this.dims = {
-      width: 0, //this.video.videoWidth,
-      height: 0 //this.video.videoHeight
-    };
-
-    this.active = 0;
-    this.cycling = false;
-    this.playing = false;
-
-    this.times = {
-      last: 0
-    };
-
-    // Store event pointers and queues
-    this.events = {
-
-    };
-
-    var self = this, 
-        clipOffset = 0;
-
-    // Create `video` elements
-    Popcorn.forEach( list, function( media, idx ) {
-
-      var video = doc.createElement( "video" );
-
-      video.preload = "auto";
-
-      // Setup newly created video element
-      video.controls = true;
-
-      // If the first, show it, if the after, hide it
-      video.style.display = ( idx && "none" ) || "" ;
-
-      // Seta registered sequence id
-      video.id = self.seqId + "-" + idx ;
-
-      // Push this video into the sequence queue
-      self.queue.push( video );
-
-      var //satisfy lint
-       mIn = media["in"], 
-       mOut = media["out"];
-       
-      // Push the in/out points into sequence ioVideos
-      self.inOuts.ofVideos.push({ 
-        "in": ( mIn !== undefined && mIn ) || 1,
-        "out": ( mOut !== undefined && mOut ) || 0
-      });
-
-      self.inOuts.ofVideos[ idx ]["out"] = self.inOuts.ofVideos[ idx ]["out"] || self.inOuts.ofVideos[ idx ]["in"] + 2;
-      
-      // Set the sources
-      video.src = !rprotocol.test( media.src ) ? lochref + media.src : media.src;
-
-      // Set some squence specific data vars
-      video.setAttribute("data-sequence-owner", parent );
-      video.setAttribute("data-sequence-guid", self.seqId );
-      video.setAttribute("data-sequence-id", idx );
-      video.setAttribute("data-sequence-clip", [ self.inOuts.ofVideos[ idx ]["in"], self.inOuts.ofVideos[ idx ]["out"] ].join(":") );
-
-      // Append the video to the parent element
-      self.parent.appendChild( video );
-      
-
-      self.playlist.push( Popcorn("#" + video.id ) );      
-
-    });
-
-    self.inOuts.ofVideos.forEach(function( obj ) {
-
-      var clipDuration = obj["out"] - obj["in"], 
-          offs = {
-            "in": clipOffset,
-            "out": clipOffset + clipDuration
-          };
-
-      self.inOuts.ofClips.push( offs );
-      
-      clipOffset = offs["out"] + 1;
-    });
-
-    Popcorn.forEach( this.queue, function( media, idx ) {
-
-      function canPlayThrough( event ) {
-
-        // If this is idx zero, use it as dimension for all
-        if ( !idx ) {
-          self.dims.width = media.videoWidth;
-          self.dims.height = media.videoHeight;
-        }
-        
-        media.currentTime = self.inOuts.ofVideos[ idx ]["in"] - 0.5;
-
-        media.removeEventListener( "canplaythrough", canPlayThrough, false );
-
-        return true;
-      }
-
-      // Hook up event listeners for managing special playback 
-      media.addEventListener( "canplaythrough", canPlayThrough, false );
-
-      // TODO: consolidate & DRY
-      media.addEventListener( "play", function( event ) {
-
-        self.playing = true;
-
-      }, false );
-
-      media.addEventListener( "pause", function( event ) {
-
-        self.playing = false;
-
-      }, false );
-
-      media.addEventListener( "timeupdate", function( event ) {
-
-        var target = event.srcElement || event.target, 
-            seqIdx = +(  (target.dataset && target.dataset.sequenceId) || target.getAttribute("data-sequence-id") ), 
-            floor = Math.floor( media.currentTime );
-
-        if ( self.times.last !== floor && 
-              seqIdx === self.active ) {
-
-          self.times.last = floor;
-          
-          if ( floor === self.inOuts.ofVideos[ seqIdx ]["out"] ) {
-
-            Popcorn.sequence.cycle.call( self, seqIdx );
-          }
-        }
-      }, false );
-    });
-
-    return this;
-  };
-
-  Popcorn.sequence.init.prototype = Popcorn.sequence.prototype;
-
-  //  
-  Popcorn.sequence.cycle = function( idx ) {
-
-    if ( !this.queue ) {
-      Popcorn.error("Popcorn.sequence.cycle is not a public method");
-    }
-
-    var // Localize references
-    queue = this.queue, 
-    ioVideos = this.inOuts.ofVideos, 
-    current = queue[ idx ], 
-    nextIdx = 0, 
-    next, clip;
-
-    
-    var // Popcorn instances
-    $popnext, 
-    $popprev;
-
-
-    if ( queue[ idx + 1 ] ) {
-      nextIdx = idx + 1;
-    }
-
-    // Reset queue
-    if ( !queue[ idx + 1 ] ) {
-
-      nextIdx = 0;
-      this.playlist[ idx ].pause();
-      
-    } else {
-    
-      next = queue[ nextIdx ];
-      clip = ioVideos[ nextIdx ];
-
-      // Constrain dimentions
-      Popcorn.extend( next, {
-        width: this.dims.width, 
-        height: this.dims.height
-      });
-
-      $popnext = this.playlist[ nextIdx ];
-      $popprev = this.playlist[ idx ];
-
-      // When not resetting to 0
-      current.pause();
-
-      this.active = nextIdx;
-      this.times.last = clip["in"] - 1;
-
-      // Play the next video in the sequence
-      $popnext.currentTime( clip["in"] );
-
-      $popnext[ nextIdx ? "play" : "pause" ]();
-
-      // Trigger custom cycling event hook
-      this.trigger( "cycle", { 
-
-        position: {
-          previous: idx, 
-          current: nextIdx
-        }
-        
-      });
-      
-      // Set the previous back to it's beginning time
-      // $popprev.currentTime( ioVideos[ idx ].in );
-
-      if ( nextIdx ) {
-        // Hide the currently ending video
-        current.style.display = "none";
-        // Show the next video in the sequence    
-        next.style.display = "";    
-      }
-
-      this.cycling = false;
-    }
-
-    return this;
-  };
-
-  var excludes = [ "timeupdate", "play", "pause" ];
-  
-  // Sequence object prototype
-  Popcorn.extend( Popcorn.sequence.prototype, {
-
-    // Returns Popcorn object from sequence at index
-    eq: function( idx ) {
-      return this.playlist[ idx ];
-    }, 
-    // Remove a sequence from it's playback display container
-    remove: function() {
-      this.parent.innerHTML = null;
-    },
-    // Returns Clip object from sequence at index
-    clip: function( idx ) {
-      return this.inOuts.ofVideos[ idx ];
-    },
-    // Returns sum duration for all videos in sequence
-    duration: function() {
-
-      var ret = 0, 
-          seq = this.inOuts.ofClips, 
-          idx = 0;
-
-      for ( ; idx < seq.length; idx++ ) {
-        ret += seq[ idx ]["out"] - seq[ idx ]["in"] + 1;
-      }
-
-      return ret - 1;
-    },
-
-    play: function() {
-
-      this.playlist[ this.active ].play();
-
-      return this;
-    },
-    // Attach an event to a single point in time
-    exec: function ( time, fn ) {
-
-      var index = this.active;
-      
-      this.inOuts.ofClips.forEach(function( off, idx ) {
-        if ( time >= off["in"] && time <= off["out"] ) {
-          index = idx;
-        }
-      });
-
-      //offsetBy = time - self.inOuts.ofVideos[ index ].in;
-      
-      time += this.inOuts.ofVideos[ index ]["in"] - this.inOuts.ofClips[ index ]["in"];
-
-      // Creating a one second track event with an empty end
-      Popcorn.addTrackEvent( this.playlist[ index ], {
-        start: time - 1,
-        end: time,
-        _running: false,
-        _natives: {
-          start: fn || Popcorn.nop,
-          end: Popcorn.nop,
-          type: "exec"
-        }
-      });
-
-      return this;
-    },
-    // Binds event handlers that fire only when all 
-    // videos in sequence have heard the event
-    listen: function( type, callback ) {
-
-      var self = this, 
-          seq = this.playlist,
-          total = seq.length, 
-          count = 0, 
-          fnName;
-
-      if ( !callback ) {
-        callback = Popcorn.nop;
-      }
-
-      // Handling for DOM and Media events
-      if ( Popcorn.Events.Natives.indexOf( type ) > -1 ) {
-        Popcorn.forEach( seq, function( video ) {
-
-          video.listen( type, function( event ) {
-
-            event.active = self;
-            
-            if ( excludes.indexOf( type ) > -1 ) {
-
-              callback.call( video, event );
-
-            } else {
-              if ( ++count === total ) {
-                callback.call( video, event );
-              }
-            }
-          });
-        });
-
-      } else {
-
-        // If no events registered with this name, create a cache
-        if ( !this.events[ type ] ) {
-          this.events[ type ] = {};
-        }
-
-        // Normalize a callback name key
-        fnName = callback.name || Popcorn.guid( "__" + type );
-
-        // Store in event cache
-        this.events[ type ][ fnName ] = callback;
-      }
-
-      // Return the sequence object
-      return this;
-    }, 
-    unlisten: function( type, name ) {
-      // TODO: finish implementation
-    },
-    trigger: function( type, data ) {
-      var self = this;
-
-      // Handling for DOM and Media events
-      if ( Popcorn.Events.Natives.indexOf( type ) > -1 ) {
-
-        //  find the active video and trigger api events on that video.
-        return;
-
-      } else {
-
-        // Only proceed if there are events of this type
-        // currently registered on the sequence
-        if ( this.events[ type ] ) {
-
-          Popcorn.forEach( this.events[ type ], function( callback, name ) {
-            callback.call( self, { type: type }, data );
-          });
-
-        }
-      }
-
-      return this;
-    }
-  });
-
-
-  Popcorn.forEach( Popcorn.manifest, function( obj, plugin ) {
-
-    // Implement passthrough methods to plugins
-    Popcorn.sequence.prototype[ plugin ] = function( options ) {
-
-      // console.log( this, options );
-      var videos = {}, assignTo = [], 
-      idx, off, inOuts, inIdx, outIdx, keys, clip, clipInOut, clipRange;
-
-      for ( idx = 0; idx < this.inOuts.ofClips.length; idx++  ) {
-        // store reference 
-        off = this.inOuts.ofClips[ idx ];
-        // array to test against
-        inOuts = range( off["in"], off["out"] );
-
-        inIdx = inOuts.indexOf( options.start );
-        outIdx = inOuts.indexOf( options.end );
-
-        if ( inIdx > -1 ) {
-          videos[ idx ] = Popcorn.extend( {}, off, {
-            start: inOuts[ inIdx ],
-            clipIdx: inIdx
-          });
-        }
-
-        if ( outIdx > -1 ) {
-          videos[ idx ] = Popcorn.extend( {}, off, {
-            end: inOuts[ outIdx ], 
-            clipIdx: outIdx
-          });
-        }
-      }
-
-      keys = Object.keys( videos ).map(function( val ) {
-                return +val;
-              });
-
-      assignTo = range( keys[ 0 ], keys[ 1 ] );
-
-      //console.log( "PLUGIN CALL MAPS: ", videos, keys, assignTo );
-      for ( idx = 0; idx < assignTo.length; idx++ ) {
-
-        var compile = {},
-        play = assignTo[ idx ], 
-        vClip = videos[ play ];
-
-        if ( vClip ) {
-
-          // has instructions
-          clip = this.inOuts.ofVideos[ play ];
-          clipInOut = vClip.clipIdx;
-          clipRange = range( clip["in"], clip["out"] );
-
-          if ( vClip.start ) {
-            compile.start = clipRange[ clipInOut ];
-            compile.end = clipRange[ clipRange.length - 1 ];
-          }
-
-          if ( vClip.end ) {
-            compile.start = clipRange[ 0 ];
-            compile.end = clipRange[ clipInOut ];
-          }
-
-          //compile.start += 0.1;
-          //compile.end += 0.9;
-          
-        } else {
-
-          compile.start = this.inOuts.ofVideos[ play ]["in"];
-          compile.end = this.inOuts.ofVideos[ play ]["out"];
-
-          //compile.start += 0.1;
-          //compile.end += 0.9;
-          
-        }
-
-        // Handling full clip persistance 
-        //if ( compile.start === compile.end ) {
-          //compile.start -= 0.1;
-          //compile.end += 0.9;
-        //}
-
-        // Call the plugin on the appropriate Popcorn object in the playlist
-        // Merge original options object & compiled (start/end) object into
-        // a new fresh object
-        this.playlist[ play ][ plugin ]( 
-
-          Popcorn.extend( {}, options, compile )
-
-        );
-        
-      }
-
-      // Return the sequence object
-      return this;
-    };
-    
-  });
-})( this, Popcorn );
 // EFFECT: applyclass
 
 (function (Popcorn) {

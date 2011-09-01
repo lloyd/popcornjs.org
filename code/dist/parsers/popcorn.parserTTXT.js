@@ -1,0 +1,2 @@
+(function(i){i.parser("parseTTXT",function(a){var f={title:"",remote:"",data:[]},j=function(b){b=b.split(":");var d=0;try{return parseFloat(b[0],10)*60*60+parseFloat(b[1],10)*60+parseFloat(b[2],10)}catch(e){d=0}return d},k=function(b,d){var e={};e[b]=d;return e};a=a.xml.lastChild.lastChild;for(var g=Number.MAX_VALUE,h=[];a;){if(a.nodeType===1&&a.nodeName==="TextSample"){var c={};c.start=j(a.getAttribute("sampleTime"));c.text=a.getAttribute("text");if(c.text){c.end=g-0.0010;h.push(k("subtitle",c))}g=
+c.start}a=a.previousSibling}f.data=h.reverse();return f})})(Popcorn);

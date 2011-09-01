@@ -1,0 +1,6 @@
+{
+  "plugins": [ "popcorn.attribution.js","popcorn.code.js","popcorn.facebook.js","popcorn.flickr.js","popcorn.footnote.js","popcorn.gml.js","popcorn.googlefeed.js","popcorn.googlemap.js","popcorn.image.js","popcorn.lastfm.js","popcorn.linkedin.js","popcorn.lowerthird.js","popcorn.mustache.js","popcorn.openmap.js","popcorn.pause.js","popcorn.processing.js","popcorn.subtitle.js","popcorn.tagthisperson.js","popcorn.timeline.js","popcorn.twitter.js","popcorn.webpage.js","popcorn.wikipedia.js","popcorn.wordriver.js" ],
+  "effects": [ "popcorn.applyclass.js" ],
+  "players": [ "popcorn.baseplayer.js","popcorn.sequence.js","popcorn.soundcloud.js","popcorn.vimeo.js","popcorn.youtube.js" ],
+  "parsers": [ "popcorn.parserJSON.js","popcorn.parserSBV.js","popcorn.parserSRT.js","popcorn.parserSSA.js","popcorn.parserTTML.js","popcorn.parserTTXT.js","popcorn.parserVTT.js","popcorn.parserXML.js" ]
+}

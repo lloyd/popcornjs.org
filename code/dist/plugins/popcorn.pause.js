@@ -1,0 +1,1 @@
+document.addEventListener("click",function(a){a=a.target;if(a.nodeName==="A"||a.parentNode&&a.parentNode.nodeName==="A")Popcorn.instances.forEach(function(b){b.options.pauseOnLinkClicked&&b.pause()})},false);
