@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <title>Popcorn + WebGL=Brendan Eich in Space | Popcorn.js</title>
+  <link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/css/style-demo2.css" />
+  <link rel="stylesheet" type="text/css" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.css">
+
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/style.css" />
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
+	<link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/demos.css" />
+  <script src="http://code.jquery.com/jquery-1.4.4.js"></script>  
+  <!--
+    Again Internet, sorry for this grossness in the head, google said to put it here
+  -->
+  <script> 
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-22667711-4']);
+    _gaq.push(['_setDomainName', 'none']);
+    _gaq.push(['_setAllowLinker', true]);
+    _gaq.push(['_trackPageview']);
+    
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.js"></script>
+  <script type="text/javascript">
+   Shadowbox.init();
+  </script>
+  
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/jquery.viewline.js"></script>
+  
+	<style>
+	#main {
+		overflow: visible;
+	}
+
+	#demo-reel {
+		font-size: 80%;
+	}
+
+	#demo-reel #demo-viewline {
+		background-color: #000;
+		position: relative;
+		height: 363px;
+		overflow: hidden;
+	}
+
+	#demo-reel .demo-image-container {
+		overflow: hidden;
+		width: 250px;
+		height: 363px;
+	}
+	
+	#demo-reel #left-arrow, #demo-reel #right-arrow {
+		position: absolute;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/arrows2.png);
+		cursor: pointer;
+		height: 38px;
+		width: 27px;
+		text-align: center;
+		font-size: 18px;
+		color: #fff;
+		left: -40px;
+		
+		background-position: 0 0px;
+	}
+	
+	#demo-reel #left-arrow:hover, #demo-reel #right-arrow:hover {
+		background-position: 0 -40px;
+	}
+	
+	#demo-reel #right-arrow {
+		left: auto;
+		right: -40px;
+		background-position: -25px 0px;
+	}
+	
+	#demo-reel #right-arrow:hover {
+		background-position: -25px -40px;
+	}
+	
+	#demo-reel .caption {
+		font-size:1.2em;
+		font-family: 'raleway';
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/caption-bg2.png);
+		padding: 20px;
+		color: #fff;
+		z-index: 40;
+	}
+
+	#demo-reel .caption h3 {
+		font-size: 1.5em;
+		color: #fff;
+		margin-bottom: 15px;
+	}
+	
+	#demo-reel .caption a {
+		color:#ff0;
+	}
+
+	#demo-reel .box {
+		padding: 0;
+		margin: 0;
+		width: auto;
+	}
+	</style>
+
+</head>
+
+<body class="single single-Demo postid-382">
+<div id="wrapper" class="hfeed">
+  <div id="header">
+    <div id="access" role="navigation">
+            <div class="menu-header"><ul id="menu-main-menu" class="menu"><li id="menu-item-161" class="menu-item menu-item-type-custom menu-item-161"><a href="/">Home</a></li>
+<li id="menu-item-154" class="menu-item menu-item-type-post_type menu-item-154"><a href="http://popcornjs.org/documentation">Documentation</a></li>
+<li id="menu-item-152" class="menu-item menu-item-type-post_type menu-item-152"><a href="http://popcornjs.org/plugins">Plugins</a></li>
+<li id="menu-item-153" class="menu-item menu-item-type-post_type menu-item-153"><a href="http://popcornjs.org/demos">Demos</a></li>
+<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-202"><a href="http://popcornjs.org/community">Community</a></li>
+<li id="menu-item-280" class="menu-item menu-item-type-post_type menu-item-280"><a href="http://popcornjs.org/download">Download</a></li>
+</ul></div>            <div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+    </div><!-- #access -->
+    <div id="masthead">
+      <div id="branding" role="banner">
+                <h1 id="site-title">
+          <span>
+            <a href="http://popcornjs.org/" title="Popcorn.js" rel="home">Popcorn.js</a>
+          </span>
+        </h1>
+        <div id="site-description">The HTML5 Media Framework</div>
+      </div><!-- #branding -->
+    </div><!-- #masthead -->
+  </div><!-- #header -->
+
+  <div id="main">
+		<div id="demoscreen">
+			<div id="postdemo1">
+				<div id="postdemo-image"><a href="http://robothaus.org/Popcorn-with-Brendan/3dpopcorn.html"><img width="640" height="430" src="http://popcornjs.org/wp-content/uploads/2011/06/brendan2.jpg" class="attachment-large wp-post-image" alt="brendan" title="brendan" /></a></div>
+			</div>
+		</div>
+		<div id="isodemo">
+			<div id="postdemo2">
+				<div id="text2">
+					<h4>Popcorn + WebGL=Brendan Eich in Space by SecretRobotron</h4>
+					<p><p>Javascript inventor Brendan Eich, in space, discusses how humans naturally want to hack systems.</p>
+ <p><a href="http://robothaus.org/Popcorn-with-Brendan/3dpopcorn.html">http://robothaus.org/Popcorn-with-Brendan/3dpopcorn.html</a></p></p>
+				</div>
+				Preview: <iframe width="400" height="349" src="http://youtube.com/embed/sSLcsHAuiF8" frameborder="0" allowfullscreen></iframe>
+			</div>
+		</div>
+
+  </div><!-- #main -->
+</div><!-- #wrapper -->
+
+  <div id="footer" role="contentinfo">
+
+        <footer>
+         Popcorn.js is brought to you by Mozilla.<br>
+          <a href="http://www.mozilla.org" title="The Mozilla Foundation">
+            <img height="50px"src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/mozilla.png"></a>
+      <p>
+          This website was designed by <a href="http://www.bocoup.com">bocoup</a> and members of the popcorn.js community. Demo gallery by <a href="http://www.iondesigns.org/">iondesigns</a>. <br>See a full list of the project sponsors <a href="/sponsors">here</a>.
+        </p>
+
+          </a>
+        </footer>
+  </div><!-- #footer -->
+
+
+
+
+  <a href="https://github.com/webmademovies/popcorn-js"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/github-left.png" alt="Fork me on GitHub"></a>
+  <a href="http://webmademovies.org"><img style="position: absolute; top: 20px; right: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/wwm-ticket.png" alt="A Web Made Movies Project"></a>
+</body>
+</html>
+
+
+

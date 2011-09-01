@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <title>Popcorn.js | The HTML5 Media Framework</title>
+  <link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/css/style-demo2.css" />
+  <link rel="stylesheet" type="text/css" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.css">
+
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/style.css" />
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
+  <script src="http://code.jquery.com/jquery-1.4.4.js"></script>  
+  <!--
+    Again Internet, sorry for this grossness in the head, google said to put it here
+  -->
+  <script> 
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-22667711-4']);
+    _gaq.push(['_setDomainName', 'none']);
+    _gaq.push(['_setAllowLinker', true]);
+    _gaq.push(['_trackPageview']);
+    
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.js"></script>
+  <script type="text/javascript">
+   Shadowbox.init();
+  </script>
+  
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/jquery.viewline.js"></script>
+  
+	<style>
+	#main {
+		overflow: visible;
+	}
+
+	#demo-reel {
+		font-size: 80%;
+	}
+
+	#demo-reel #demo-viewline {
+		background-color: #000;
+		position: relative;
+		height: 363px;
+		overflow: hidden;
+	}
+
+	#demo-reel .demo-image-container {
+		overflow: hidden;
+		width: 250px;
+		height: 363px;
+	}
+	
+	#demo-reel #left-arrow, #demo-reel #right-arrow {
+		position: absolute;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/arrows2.png);
+		cursor: pointer;
+		height: 38px;
+		width: 27px;
+		text-align: center;
+		font-size: 18px;
+		color: #fff;
+		left: -40px;
+		
+		background-position: 0 0px;
+	}
+	
+	#demo-reel #left-arrow:hover, #demo-reel #right-arrow:hover {
+		background-position: 0 -40px;
+	}
+	
+	#demo-reel #right-arrow {
+		left: auto;
+		right: -40px;
+		background-position: -25px 0px;
+	}
+	
+	#demo-reel #right-arrow:hover {
+		background-position: -25px -40px;
+	}
+	
+	#demo-reel .caption {
+		font-size:1.2em;
+		font-family: 'raleway';
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/caption-bg2.png);
+		padding: 20px;
+		color: #fff;
+		z-index: 40;
+	}
+
+	#demo-reel .caption h3 {
+		font-size: 1.5em;
+		color: #fff;
+		margin-bottom: 15px;
+	}
+	
+	#demo-reel .caption a {
+		color:#ff0;
+	}
+
+	#demo-reel .box {
+		padding: 0;
+		margin: 0;
+		width: auto;
+	}
+	</style>
+
+</head>
+
+<body class="home page page-id-115 page-template page-template-page-home-php">
+<div id="wrapper" class="hfeed">
+  <div id="header">
+    <div id="access" role="navigation">
+            <div class="menu-header"><ul id="menu-main-menu" class="menu"><li id="menu-item-161" class="menu-item menu-item-type-custom menu-item-161"><a href="/">Home</a></li>
+<li id="menu-item-154" class="menu-item menu-item-type-post_type menu-item-154"><a href="http://popcornjs.org/documentation">Documentation</a></li>
+<li id="menu-item-152" class="menu-item menu-item-type-post_type menu-item-152"><a href="http://popcornjs.org/plugins">Plugins</a></li>
+<li id="menu-item-153" class="menu-item menu-item-type-post_type menu-item-153"><a href="http://popcornjs.org/demos">Demos</a></li>
+<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-202"><a href="http://popcornjs.org/community">Community</a></li>
+<li id="menu-item-280" class="menu-item menu-item-type-post_type menu-item-280"><a href="http://popcornjs.org/download">Download</a></li>
+</ul></div>            <div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+    </div><!-- #access -->
+    <div id="masthead">
+      <div id="branding" role="banner">
+                <h1 id="site-title">
+          <span>
+            <a href="http://popcornjs.org/" title="Popcorn.js" rel="home">Popcorn.js</a>
+          </span>
+        </h1>
+        <div id="site-description">The HTML5 Media Framework</div>
+
+              </div><!-- #branding -->
+    </div><!-- #masthead -->
+  </div><!-- #header -->
+
+  <div id="main">
+  <script type="text/javascript">
+		$(document).ready(function() {
+			$("#demo-viewline").viewline( {
+				arrow_content:		false,
+				vertical_align:		false,
+				smart_width: 		true,
+				viewline_width:		940, /* 0 = window width (default) / Any int value */
+				auto_play:			true,
+				interval:			4000,
+				pauseonover:		true,
+				arrow_wrapper:		'#demo-reel', /* null (default) / Any ID (#id) or Class (.class) */
+				animation:			'fade', /* dropdown (default) / popup / fade */
+				animation_in:		500,
+				animation_out:		200,
+				animation_delay:	0
+			});
+		});
+	</script>
+
+    <script src="http://popcornjs.org/code/dist/popcorn-complete.js"></script>
+    <script>
+    $(function(){
+      Popcorn("#video")
+     .listen( 'play', function(){
+       $('#staticcontent').remove();
+     })
+.footnote({"id":"googlemap","start":0,"end":8,"target":"popcorn-container","text":"Get ready for some popcorn!"})
+.footnote({"id":"googlemap","start":8.1,"end":11,"target":"popcorn-container","text":"Pop!"})
+.image({"id":"googlemap","start":11.1,"end":16,"target":"popcorn-container","src":"http://www.w3.org/html/logo/downloads/HTML5_Logo_256.png"})
+    .googlemap({"id":"googlemap","start":16.1,"end":20,"target":"popcorn-container","type":"TERRAIN","zoom":8,"location":"New Orleans"})
+    .googlemap({"id":"googlemap","start":21.1,"end":25,"target":"popcorn-container","type":"TERRAIN","zoom":8,"location":"Capetown"})
+    .flickr({"id":"googlemap","start":25.1,"end":29,"target":"popcorn-container","userid":"78868639@N00","numberofimages":6,"height":"60px", "width":"60px"})
+    .twitter({"id":"googlemap","start":29.1,"end":34.5,"target":"popcorn-container","src":"#willferrel"})
+    .wikipedia({"id":"googlemap","start":35,"end":36.5,"target":"popcorn-container","lang":"en","title":"Will Ferrell","numOfWords":200, src:"http://en.wikipedia.org/wiki/Will_Ferrell"})
+    .footnote({"id":"googlemap","start":37,"end":40,"target":"popcorn-container","text":"Watch this video on <a href=\"http://www.pbs.org/newshour/sotu-video\">PBS</a>!"})
+    .footnote({"id":"googlemap","start":40.1,"end":43,"target":"popcorn-container","text":"Watch this one at <a href=\"http://notre-poison-quotidien.arte.tv/fr\">Arte</a>"})
+    .footnote({"id":"googlemap","start":43,"end":44,"target":"popcorn-container","text":"This video is <a href=\"http://www.rebelliouspixels.com/semanticremix\">here</a>"})
+    .footnote({"id":"googlemap","start":44.1,"end":48,"target":"popcorn-container","text":"Check out some <a href=\"http://avnerd.tv/d2bd/bieber.html\">Bieber fever</a>!"})
+    .footnote({"id":"googlemap","start":48.1,"end":53,"target":"popcorn-container","text":"Try it at <a href=\"http://www.butterapp.org/butter\">butterapp.org</a>"})
+    .footnote({"id":"googlemap","start":53.1,"end":57,"target":"popcorn-container","text":"Browse our plugins <a href=\"http://popcornjs.org/plugins\">here</a>"})
+    .footnote({"id":"googlemap","start":57.1,"end":59,"target":"popcorn-container","text":"We're on <a href=\"https://github.com/webmademovies/popcorn-js\">Github</a>"})
+    .footnote({"id":"googlemap","start":60,"end":70,"target":"popcorn-container","text":"Check out our <a href=\"http://www.popcornjs.org/community\">community page</a> and get involved!"});
+    });
+    </script>
+    
+    <div id="container" class="wide">
+      <div id="content" role="main">
+
+
+        <div id="post-115" class="post-115 page type-page hentry">
+          <div class="entry-content panel">
+	    <video style="background:#000" id="video" preload="auto" autobuffer controls poster="http://videos.mozilla.org/serv/webmademovies/popcornposter.png">
+              <source src="http://videos.mozilla.org/serv/webmademovies/wtfpopcorn.mp4" type="video/mp4">
+              <source src="http://videos.mozilla.org/serv/webmademovies/wtfpopcorn.webm" type="video/webM">
+              <source src="http://videos.mozilla.org/serv/webmademovies/wtfpopcorn.ogv" type="video/ogg">
+            </video>
+            <div class="sidepanel">
+              <div class="butter-plugin" id="popcorn-container">
+                <div id="staticcontent">
+                  <h1>Popcorn.js</h1>
+                  Watch a demo of Popcorn.js, our HTML5 javascript library for integrating the web into video production.
+                  <p>   Start the video to watch popcorn.js change your webpage!</P>
+                </div>
+              </div>
+            </div>
+          </div><!-- .entry-content -->
+        </div><!-- #post-## -->
+
+        <h3 class="fancy">Other Demos</h3>
+				<div id="demo-reel">
+					<div id="demo-viewline">
+        		
+        		
+								                	<div id="post-448" class="post-448 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="245" height="254" src="http://popcornjs.org/wp-content/uploads/2011/08/realhero.jpg" class="attachment-large wp-post-image" alt="realhero" title="realhero" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/the-real-hero">The Real Hero</a></h3><p>A Popcorn-powered examination of the role California veterans played in WWII. <a href="http://popcornjs.org/Demo/the-real-hero"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-447" class="post-447 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="640" height="389" src="http://popcornjs.org/wp-content/uploads/2011/08/stonesoup.jpg" class="attachment-large wp-post-image" alt="stonesoup" title="stonesoup" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/stone-soup">Stone Soup</a></h3><p>Catalan Open Education Resources for learning open web technologies. Uses Popcorn.js to illustrate examples from across the web. <a href="http://popcornjs.org/Demo/stone-soup"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-434" class="post-434 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="456" height="317" src="http://popcornjs.org/wp-content/uploads/2011/07/mpr.png" class="attachment-large wp-post-image" alt="mpr" title="mpr" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/minnesota-public-radio">Minnesota Public Radio</a></h3><p>Uses popcorn for a clickable transcript and timed resources <a href="http://popcornjs.org/Demo/minnesota-public-radio"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-395" class="post-395 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="640" height="360" src="http://popcornjs.org/wp-content/uploads/2011/06/boingboing.jpg" class="attachment-large wp-post-image" alt="boingboing" title="boingboing" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/happy-world">Happy World</a></h3><p>Web documentary using popcorn for bonus material <a href="http://popcornjs.org/Demo/happy-world"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-373" class="post-373 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="640" height="351" src="http://popcornjs.org/wp-content/uploads/2011/06/visionsofstudents.jpg" class="attachment-large wp-post-image" alt="visionsofstudents" title="visionsofstudents" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/visions-of-students-today">Visions of Students Today</a></h3><p>Collage video remix uses popcorn to pop up video samples and provide links. <a href="http://popcornjs.org/Demo/visions-of-students-today"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-401" class="post-401 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="640" height="423" src="http://popcornjs.org/wp-content/uploads/2011/06/radiolabscreenshot.png" class="attachment-large wp-post-image" alt="radiolabscreenshot" title="radiolabscreenshot" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/radiolab-hyperaudio-player">RadioLab HyperAudio Player</a></h3><p>An audio demo that uses popcorn to fuse soundcloud, flickr and audio content <a href="http://popcornjs.org/Demo/radiolab-hyperaudio-player"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-437" class="post-437 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="332" height="400" src="http://popcornjs.org/wp-content/uploads/2011/07/djangocomposite.png" class="attachment-large wp-post-image" alt="djangocomposite" title="djangocomposite" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/django-101">Django 101</a></h3><p>An online programming course that uses popcorn.js to synchronize examples to narration <a href="http://popcornjs.org/Demo/django-101"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-427" class="post-427 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="500" height="308" src="http://popcornjs.org/wp-content/uploads/2011/06/riviera-city.jpg" class="attachment-large wp-post-image" alt="riviera city" title="riviera city" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/riviera-city">Riviera City</a></h3><p>An interactive webfiction using popcorn to show descriptions, locations and social comments. <a href="http://popcornjs.org/Demo/riviera-city"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-378" class="post-378 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="600" height="417" src="http://popcornjs.org/wp-content/uploads/2011/06/egypt2.jpg" class="attachment-large wp-post-image" alt="egypt2" title="egypt2" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/18daysinegypt">#18daysinegypt</a></h3><p>Full screen video uses popcorn.js for dynamic overlays <a href="http://popcornjs.org/Demo/18daysinegypt"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        		
+								                	<div id="post-384" class="post-384 Demo type-Demo hentry box">
+										<div class="demo-image-container"><img width="640" height="593" src="http://popcornjs.org/wp-content/uploads/2011/06/planetarium.jpg" class="attachment-large wp-post-image" alt="planetarium" title="planetarium" /></div>
+	                  <span class="caption"><h3><a href="http://popcornjs.org/Demo/popcorn-in-the-planetarium">Popcorn in the Planetarium</a></h3><p>A popcorn mashup of youtube, Khan Academy, and HTML5 <a href="http://popcornjs.org/Demo/popcorn-in-the-planetarium"><br /></a></p>
+</span>
+	                </div>
+									<!-- #post-## -->
+								
+        							</div>
+				</div>
+        <hr class="space">
+        <a class="right" href="/demos">View More Demos &rarr;</a>
+
+
+
+
+      </div><!-- #content -->
+    </div><!-- #container -->
+
+  </div><!-- #main -->
+</div><!-- #wrapper -->
+
+  <div id="footer" role="contentinfo">
+
+        <footer>
+         Popcorn.js is brought to you by Mozilla.<br>
+          <a href="http://www.mozilla.org" title="The Mozilla Foundation">
+            <img height="50px"src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/mozilla.png"></a>
+      <p>
+          This website was designed by <a href="http://www.bocoup.com">bocoup</a> and members of the popcorn.js community. Demo gallery by <a href="http://www.iondesigns.org/">iondesigns</a>. <br>See a full list of the project sponsors <a href="/sponsors">here</a>.
+        </p>
+
+          </a>
+        </footer>
+  </div><!-- #footer -->
+
+
+
+
+  <a href="https://github.com/webmademovies/popcorn-js"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/github-left.png" alt="Fork me on GitHub"></a>
+  <a href="http://webmademovies.org"><img style="position: absolute; top: 20px; right: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/wwm-ticket.png" alt="A Web Made Movies Project"></a>
+</body>
+</html>

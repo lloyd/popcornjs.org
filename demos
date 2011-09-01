@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <title>Demos | Popcorn.js</title>
+  <link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/css/style-demo2.css" />
+  <link rel="stylesheet" type="text/css" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.css">
+
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/style.css" />
+  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
+	<link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/demos.css" />
+  <script src="http://code.jquery.com/jquery-1.4.4.js"></script>  
+	<script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/js/easySlider1.5.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function(){	
+			$("#slider").easySlider();
+		});	
+	</script>
+
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/js/jquery.roundabout-1.0.min.js"></script> 
+	<script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/js/jquery.easing.1.3.js"></script>
+  <!--
+    Again Internet, sorry for this grossness in the head, google said to put it here
+  -->
+  <script> 
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-22667711-4']);
+    _gaq.push(['_setDomainName', 'none']);
+    _gaq.push(['_setAllowLinker', true]);
+    _gaq.push(['_trackPageview']);
+    
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.js"></script>
+  <script type="text/javascript">
+   Shadowbox.init();
+  </script>
+  
+  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/jquery.viewline.js"></script>
+  
+	<script type="text/javascript">
+		$(document).ready( function () {
+			
+			var greyDiv = document.createElement('div');
+			greyDiv.className = 'modal-div';
+			var captcha = $('#recaptcha-container');
+
+			function resize() {
+				greyDiv.style.width = window.innerWidth + "px";
+				greyDiv.style.height = window.innerHeight + "px";
+				captcha.css({
+					left: window.innerWidth/2 - captcha.width()/2,
+					top: window.innerHeight/2 - captcha.height()/2,
+				}); 
+			}
+
+			function modalCaptcha() {
+				captcha.css({
+					display: 'block',
+				});
+				resize();
+				window.addEventListener('resize', resize, false);
+				document.body.style.overflow = 'hidden';
+				document.body.appendChild(greyDiv);
+			}
+
+			$('#recaptcha-submit').click( function (e) {
+				$('#submit-demo-form')[0].submit();
+			});
+
+			$('#recaptcha-cancel').click( function (e) {
+				captcha.css({
+					display: 'none',
+				});
+				window.removeEventListener('resize', resize, false);
+				document.body.style.overflow = 'scroll';
+				document.body.removeChild(greyDiv);
+			});
+
+			$('#submit-demo-button').click( function (e) {
+				modalCaptcha();			
+			});
+
+
+		});
+	</script>
+
+	<style>
+	
+
+	#main {
+		overflow: visible;
+	}
+
+	#demo-reel {
+		font-size: 80%;
+	}
+
+	#demo-reel #demo-viewline {
+		background-color: #000;
+		position: relative;
+		height: 363px;
+		overflow: hidden;
+	}
+
+	#demo-reel .demo-image-container {
+		overflow: hidden;
+		width: 250px;
+		height: 363px;
+	}
+	
+	#demo-reel #left-arrow, #demo-reel #right-arrow {
+		position: absolute;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/arrows2.png);
+		cursor: pointer;
+		height: 38px;
+		width: 27px;
+		text-align: center;
+		font-size: 18px;
+		color: #fff;
+		left: -40px;
+		
+		background-position: 0 0px;
+	}
+	
+	#demo-reel #left-arrow:hover, #demo-reel #right-arrow:hover {
+		background-position: 0 -40px;
+	}
+	
+	#demo-reel #right-arrow {
+		left: auto;
+		right: -40px;
+		background-position: -25px 0px;
+	}
+	
+	#demo-reel #right-arrow:hover {
+		background-position: -25px -40px;
+	}
+	
+	#demo-reel .caption {
+		font-size:1.2em;
+		font-family: 'raleway';
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/caption-bg2.png);
+		padding: 20px;
+		color: #fff;
+		z-index: 40;
+	}
+
+	#demo-reel .caption h3 {
+		font-size: 1.5em;
+		color: #fff;
+		margin-bottom: 15px;
+	}
+	
+	#demo-reel .caption a {
+		color:#ff0;
+	}
+
+	#demo-reel .box {
+		padding: 0;
+		margin: 0;
+		width: auto;
+	}
+	</style>
+
+</head>
+
+<body class="page page-id-50 page-template page-template-page-demos-php">
+<div id="wrapper" class="hfeed">
+  <div id="header">
+    <div id="access" role="navigation">
+            <div class="menu-header"><ul id="menu-main-menu" class="menu"><li id="menu-item-161" class="menu-item menu-item-type-custom menu-item-161"><a href="/">Home</a></li>
+<li id="menu-item-154" class="menu-item menu-item-type-post_type menu-item-154"><a href="http://popcornjs.org/documentation">Documentation</a></li>
+<li id="menu-item-152" class="menu-item menu-item-type-post_type menu-item-152"><a href="http://popcornjs.org/plugins">Plugins</a></li>
+<li id="menu-item-153" class="menu-item menu-item-type-post_type current-menu-item page_item page-item-50 current_page_item menu-item-153"><a href="http://popcornjs.org/demos">Demos</a></li>
+<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-202"><a href="http://popcornjs.org/community">Community</a></li>
+<li id="menu-item-280" class="menu-item menu-item-type-post_type menu-item-280"><a href="http://popcornjs.org/download">Download</a></li>
+</ul></div>            <div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+    </div><!-- #access -->
+    <div id="masthead">
+      <div id="branding" role="banner">
+                <h1 id="site-title">
+          <span>
+            <a href="http://popcornjs.org/" title="Popcorn.js" rel="home">Popcorn.js</a>
+          </span>
+        </h1>
+        <div id="site-description">The HTML5 Media Framework</div>
+
+              </div><!-- #branding -->
+    </div><!-- #masthead -->
+  </div><!-- #header -->
+
+  <div id="main">
+
+    <div id="container" class="wide">
+      <div id="content" role="main">
+
+				<div id="body-wrapper">
+					<div id="info">
+					  <img src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/tick.png" width="220" height="120"/>
+					  <h2>Submit a Demo</h2>
+
+						<div id="submission-div">
+														<form id="submit-demo-form" action="http://popcornjs.org/mailer.php?" method="post">
+								<ul>
+									<li><label>Your Name:</label><input name="name" type="text" size="40"/></li>
+									<li><label>Demo URL:</label><input name="url" type="text" size="40"/></li>
+									<li><label>Youtube URL:</label><input name="youtube" type="text" size="40"/></li>
+									<li><label>Describe your demo:</label><textarea name="description" cols="40" rows="5"></textarea></li>
+									<li>
+										<input type="button" id="submit-demo-button" value="Submit Demo" />
+									</li>
+								</ul>
+								<div id="recaptcha-container">
+									<script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=6Ld0hcUSAAAAAKMAdCZhi7Juv4nU6JsFIehmO83t"></script>
+
+	<noscript>
+  		<iframe src="http://www.google.com/recaptcha/api/noscript?k=6Ld0hcUSAAAAAKMAdCZhi7Juv4nU6JsFIehmO83t" height="300" width="500" frameborder="0"></iframe><br/>
+  		<textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+  		<input type="hidden" name="recaptcha_response_field" value="manual_challenge"/>
+	</noscript>									<p class="recaptcha-submit-container">
+										<input type="button" value="Submit" id="recaptcha-submit"/>
+										<input type="button" value="Cancel" id="recaptcha-cancel"/>
+									</p>
+								</div>
+							</form>
+						</div>
+
+					</div>
+					<div id="demo-wrapper">
+						<div id="demo-content">
+							<div id="slider">
+								<ul>
+									<li>
+
+
+										<div id="post-448" class="demo-post">
+											<a href="http://popcornjs.org/Demo/the-real-hero"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/08/realhero-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="realhero" title="realhero" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/the-real-hero">The Real Hero</a></h4>
+            						<span id="post-blurb-448">A Popcorn-powered examination of the role California veterans played in WWII. <a href="http://popcornjs.org/Demo/the-real-hero"><br></a></span>
+												<p><a href="http://www.anchoredweb.com/cvmd/index.php?option=com_content&view=article&id=3&Itemid=4#videotop">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-448');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-447" class="demo-post">
+											<a href="http://popcornjs.org/Demo/stone-soup"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/08/stonesoup-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="stonesoup" title="stonesoup" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/stone-soup">Stone Soup</a></h4>
+            						<span id="post-blurb-447">Catalan Open Education Resources for learning open web technologies. Uses Popcorn.js to illustrate examples from across the web. <a href="http://popcornjs.org/Demo/stone-soup"><br></a></span>
+												<p><a href="http://www.mozilla.cat/drumbeat/stonesoup/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-447');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-434" class="demo-post">
+											<a href="http://popcornjs.org/Demo/minnesota-public-radio"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/07/mpr-150x150.png" class="attachment-thumbnail wp-post-image" alt="mpr" title="mpr" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/minnesota-public-radio">Minnesota Public Radio</a></h4>
+            						<span id="post-blurb-434">Uses popcorn for a clickable transcript and timed resources <a href="http://popcornjs.org/Demo/minnesota-public-radio"><br></a></span>
+												<p><a href="http://minnesota.publicradio.org/proto/hyperAudio/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-434');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-395" class="demo-post">
+											<a href="http://popcornjs.org/Demo/happy-world"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/boingboing-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="boingboing" title="boingboing" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/happy-world">Happy World</a></h4>
+            						<span id="post-blurb-395">Web documentary using popcorn for bonus material <a href="http://popcornjs.org/Demo/happy-world"><br></a></span>
+												<p><a href="http://www.happy-world.com/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-395');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-373" class="demo-post">
+											<a href="http://popcornjs.org/Demo/visions-of-students-today"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/visionsofstudents-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="visionsofstudents" title="visionsofstudents" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/visions-of-students-today">Visions of Students Today</a></h4>
+            						<span id="post-blurb-373">Collage video remix uses popcorn to pop up video samples and provide links. <a href="http://popcornjs.org/Demo/visions-of-students-today"><br></a></span>
+												<p><a href="http://www.visionsofstudents.org">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-373');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-401" class="demo-post">
+											<a href="http://popcornjs.org/Demo/radiolab-hyperaudio-player"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/radiolabscreenshot-150x150.png" class="attachment-thumbnail wp-post-image" alt="radiolabscreenshot" title="radiolabscreenshot" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/radiolab-hyperaudio-player">RadioLab HyperAudio Player</a></h4>
+            						<span id="post-blurb-401">An audio demo that uses popcorn to fuse soundcloud, flickr and audio content <a href="http://popcornjs.org/Demo/radiolab-hyperaudio-player"><br></a></span>
+												<p><a href="http://hyper-audio.org/r/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-401');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+									</li><li>
+
+										<div id="post-437" class="demo-post">
+											<a href="http://popcornjs.org/Demo/django-101"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/07/djangocomposite-150x150.png" class="attachment-thumbnail wp-post-image" alt="djangocomposite" title="djangocomposite" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/django-101">Django 101</a></h4>
+            						<span id="post-blurb-437">An online programming course that uses popcorn.js to synchronize examples to narration <a href="http://popcornjs.org/Demo/django-101"><br></a></span>
+												<p><a href="http://django101.com/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-437');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-427" class="demo-post">
+											<a href="http://popcornjs.org/Demo/riviera-city"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/riviera-city-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="riviera city" title="riviera city" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/riviera-city">Riviera City</a></h4>
+            						<span id="post-blurb-427">An interactive webfiction using popcorn to show descriptions, locations and social comments. <a href="http://popcornjs.org/Demo/riviera-city"><br></a></span>
+												<p><a href="http://rivieracity.fr/choix/accueil-rs/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-427');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-378" class="demo-post">
+											<a href="http://popcornjs.org/Demo/18daysinegypt"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/egypt2-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="egypt2" title="egypt2" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/18daysinegypt">#18daysinegypt</a></h4>
+            						<span id="post-blurb-378">Full screen video uses popcorn.js for dynamic overlays <a href="http://popcornjs.org/Demo/18daysinegypt"><br></a></span>
+												<p><a href="http://code.chirls.com/buttercamp/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-378');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-384" class="demo-post">
+											<a href="http://popcornjs.org/Demo/popcorn-in-the-planetarium"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/planetarium-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="planetarium" title="planetarium" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/popcorn-in-the-planetarium">Popcorn in the Planetarium</a></h4>
+            						<span id="post-blurb-384">A popcorn mashup of youtube, Khan Academy, and HTML5 <a href="http://popcornjs.org/Demo/popcorn-in-the-planetarium"><br></a></span>
+												<p><a href="http://webmademovies.org/popcorn-in-the-planetarium/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-384');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-211" class="demo-post">
+											<a href="http://popcornjs.org/Demo/donald-duck"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/02/Screen-shot-2011-02-20-at-5.20.20-PM-150x150.png" class="attachment-thumbnail wp-post-image" alt="Screen shot 2011-02-20 at 5.20.20 PM" title="Screen shot 2011-02-20 at 5.20.20 PM" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/donald-duck">Right Wing Radio Duck</a></h4>
+            						<span id="post-blurb-211">Satirical remix uses popcorn to cite video and audio samples. <a href="http://popcornjs.org/Demo/donald-duck"><br></a></span>
+												<p><a href="http://www.rebelliouspixels.com/semanticremix/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-211');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-406" class="demo-post">
+											<a href="http://popcornjs.org/Demo/danas-video-book-report"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/dana-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="dana" title="dana" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/danas-video-book-report">Dana&#8217;s Video Book Report</a></h4>
+            						<span id="post-blurb-406">A student uses popcorn to site examples and synchronize video content with web resources <a href="http://popcornjs.org/Demo/danas-video-book-report"><br></a></span>
+												<p><a href="http://www.benmoskowitz.com/dana/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-406');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+									</li><li>
+
+										<div id="post-382" class="demo-post">
+											<a href="http://popcornjs.org/Demo/popcorn-webglbrendan-eich-in-space"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/brendan2-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="brendan" title="brendan" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/popcorn-webglbrendan-eich-in-space">Popcorn + WebGL=Brendan Eich in Space</a></h4>
+            						<span id="post-blurb-382">Popcorn + WebGL demo <a href="http://popcornjs.org/Demo/popcorn-webglbrendan-eich-in-space"><br></a></span>
+												<p><a href="http://robothaus.org/Popcorn-with-Brendan/3dpopcorn.html">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-382');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-375" class="demo-post">
+											<a href="http://popcornjs.org/Demo/grafitti-markup-language"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/GML2-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="GML2" title="GML2" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/grafitti-markup-language">Grafitti Markup Language</a></h4>
+            						<span id="post-blurb-375">Explanation of the Graffiti Markup Language that uses popcorn to surface + sync GML tags <a href="http://popcornjs.org/Demo/grafitti-markup-language"><br></a></span>
+												<p><a href="http://scotland.proximity.on.ca/sdowne/popcornGML/gml+popcorn/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-375');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-403" class="demo-post">
+											<a href="http://popcornjs.org/Demo/hyperdisken"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/hyperdisken-screenshot-150x150.png" class="attachment-thumbnail wp-post-image" alt="hyperdisken screenshot" title="hyperdisken screenshot" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/hyperdisken">HyperDisken</a></h4>
+            						<span id="post-blurb-403">Radio program uses popcorn to add contextual links <a href="http://popcornjs.org/Demo/hyperdisken"><br></a></span>
+												<p><a href="http://yoyodyne.cc/h/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-403');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-380" class="demo-post">
+											<a href="http://popcornjs.org/Demo/kapor-center-mural-unveiling"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/kapor-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="kapor" title="kapor" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/kapor-center-mural-unveiling">Kapor Center Mural Unveiling</a></h4>
+            						<span id="post-blurb-380">Annotated video with footnotes and map <a href="http://popcornjs.org/Demo/kapor-center-mural-unveiling"><br></a></span>
+												<p><a href="http://kaporcenter.org/files/video/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-380');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-425" class="demo-post">
+											<a href="http://popcornjs.org/Demo/the-band"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/06/theband-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="theband" title="theband" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/the-band">The Band</a></h4>
+            						<span id="post-blurb-425">A Popcorn powered Karaoke player <a href="http://popcornjs.org/Demo/the-band"><br></a></span>
+												<p><a href="http://mozillalabs.com/blog/2011/04/a-web-based-karaoke-prototype-as-technology-feedback-loop/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-425');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-246" class="demo-post">
+											<a href="http://popcornjs.org/Demo/notre-poisen-quotidien"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/02/poison-150x150.jpg" class="attachment-thumbnail wp-post-image" alt="poison" title="poison" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/notre-poisen-quotidien">Notre Poison Quotidien</a></h4>
+            						<span id="post-blurb-246">TV/Web Simulcast uses popcorn to add annotations. <a href="http://popcornjs.org/Demo/notre-poisen-quotidien"><br></a></span>
+												<p><a href="http://notre-poison-quotidien.arte.tv/fr/pesticides/">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-246');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+									</li><li>
+
+										<div id="post-70" class="demo-post">
+											<a href="http://popcornjs.org/Demo/semantic-video"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/01/semantic-150x150.png" class="attachment-thumbnail wp-post-image" alt="semantic" title="semantic" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/semantic-video">Semantic Video</a></h4>
+            						<span id="post-blurb-70">The original popcorn demo demonstrates several plugins at once. <a href="http://popcornjs.org/Demo/semantic-video"><br></a></span>
+												<p><a href="http://popcornjs.org/code/demos/semantic_video">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-70');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+										<div id="post-68" class="demo-post">
+											<a href="http://popcornjs.org/Demo/boaz-sender-demo"><img width="150" height="150" src="http://popcornjs.org/wp-content/uploads/2011/01/Screen-shot-2011-01-27-at-11.07.11-PM-150x150.png" class="attachment-thumbnail wp-post-image" alt="Screen shot 2011-01-27 at 11.07.11 PM" title="Screen shot 2011-01-27 at 11.07.11 PM" /></a>
+											<div class="demo-post-text">
+												<h4><a href="http://popcornjs.org/Demo/boaz-sender-demo">PBS News Hour</a></h4>
+            						<span id="post-blurb-68">Obama's State Of The Union speech with popcorn annotation <a href="http://popcornjs.org/Demo/boaz-sender-demo"><br></a></span>
+												<p><a href="http://www.pbs.org/newshour/sotu-video">[demo]</a></p>
+											</div>
+											<script type="text/javascript">
+												var blurbDiv = document.getElementById('post-blurb-68');
+												if (blurbDiv.textContent.length > 90) {
+													blurbDiv.textContent = blurbDiv.textContent.substr(0, 90) + "...";
+												} //if
+											</script>
+										</div>
+
+
+                  </li>
+								</ul>
+							</div>
+						</div>
+					</div>       
+				</div> 
+
+
+
+      </div><!-- #content -->
+    </div><!-- #container -->
+
+  </div><!-- #main -->
+</div><!-- #wrapper -->
+
+  <div id="footer" role="contentinfo">
+
+        <footer>
+         Popcorn.js is brought to you by Mozilla.<br>
+          <a href="http://www.mozilla.org" title="The Mozilla Foundation">
+            <img height="50px"src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/mozilla.png"></a>
+      <p>
+          This website was designed by <a href="http://www.bocoup.com">bocoup</a> and members of the popcorn.js community. Demo gallery by <a href="http://www.iondesigns.org/">iondesigns</a>. <br>See a full list of the project sponsors <a href="/sponsors">here</a>.
+        </p>
+
+          </a>
+        </footer>
+  </div><!-- #footer -->
+
+
+
+
+  <a href="https://github.com/webmademovies/popcorn-js"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/github-left.png" alt="Fork me on GitHub"></a>
+  <a href="http://webmademovies.org"><img style="position: absolute; top: 20px; right: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/wwm-ticket.png" alt="A Web Made Movies Project"></a>
+</body>
+</html>
