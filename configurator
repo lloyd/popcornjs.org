@@ -112,6 +112,89 @@
 		margin: 0;
 		width: auto;
 	}
+
+
+  #content div.step {
+    font-size: 2.5em;
+    font-style: bold;
+    float: left;
+    margin: -.1em .4em .2em .2em;
+  }
+
+  #elements {
+    margin-top: 1em;
+  }
+
+  #elements ul {
+    list-style: none;
+    float: left;
+    width: 20%;
+  }
+
+  #elements ul li:first-child {
+    font-size: 1.2em;
+    font-style: italic;
+    margin: 0 0 1em -.5em;
+  }
+ 
+  #elements ul li div {
+    border: 1px solid black;
+    margin: .4em;
+    text-align: center;
+    border-radius: .4em;
+    -moz-border-radius: .4em;
+    -webkit-border-radius: .4em;
+    background-color: black;
+    color: white;
+    opacity: .3;
+    cursor: pointer;
+  }
+
+  #elements ul li div.selected {
+    opacity: .8;
+    background-color: green;
+  }
+
+  #progress {
+    height: 2em;
+    width: 100%;
+    border: 1px solid #666;
+    margin: 1em;
+    background-color: #ccc;
+  }
+
+  #progress #current {
+    border: 0;
+    padding: 0;
+    height: 100%;
+    width: 0%;
+    background-color: yellow;
+    opacity: .5;
+  }
+
+  #progress #current.complete {
+    background-color: green; 
+  }
+
+  #progress div#libsize {
+    float: left;
+    font-size: .8em;
+    color: black;
+    margin: .5em 0 0 .5em;
+  }
+
+  #content textarea#built_library {
+    border: 1px;
+    font-size: .7em;
+    font-family: Courier,fixed;
+    width: 100%;
+    height: 10em;
+    background-color: #ccc;
+    border: 1px solid #666;
+    padding: 0;
+    margin: .5em 0 0 1.7em;
+    line-height: normal;
+  }
 	</style>
 
 </head>
@@ -142,7 +225,6 @@
   </div><!-- #header -->
 
   <div id="main">
-
     <div id="container">
       <div id="content" role="main">
         <h3>Create a Custom Popcorn.js library</h3>
@@ -153,34 +235,35 @@
           these steps:
         </p>
         <p>
-          <span class="step">1.</span> Select the elements you want:
+          <div class="step">1.</div> Select the elements you want:
           <br>
           <div id="elements">
-            <ul class="effects">
+            <ul category="effects">
               <li> Effects
               <li> ...
             </ul>
-            <ul class="parsers">
+            <ul category="parsers">
               <li> Parsers 
               <li> ...
             </ul>
-            <ul class="plugins">
+            <ul category="plugins">
               <li> Plugins
               <li> ...
             </ul>
-            <ul class="players">
+            <ul category="players">
               <li> Players
               <li> ...
             </ul>
           </div>
-
-          <span class="step">2.</span> Build your library!
-          <input type="button" value="Build It"></input>
-          <div id="progress"><div id="current"></div></div>
-
-          <span class="step">3.</span> Copy the contents of your library and save them to a file:
+        </p><hr><p>
+          <div class="step">2.</div> Click to 
+          <input id="build_button" type="button" value="Build your library!"></input>. 
+            <div id="progress"><div id="libsize">Click build to begin</div><div id="current"></div></div>
+          </p>
+        </p><hr><p>
+          <div class="step">3.</div>
+          <p>Finally, copy the contents of your custom library and save them to a file:</p>
           <textarea id="built_library"></textarea>
-
         </p>
       </div><!-- #content -->
     </div><!-- #container -->
