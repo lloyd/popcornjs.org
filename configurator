@@ -156,19 +156,19 @@
           <span class="step">1.</span> Select the elements you want:
           <br>
           <div id="elements">
-            <ul class="column">
+            <ul class="effects">
               <li> Effects
               <li> ...
             </ul>
-            <ul class="column">
+            <ul class="parsers">
               <li> Parsers 
               <li> ...
             </ul>
-            <ul class="column">
+            <ul class="plugins">
               <li> Plugins
               <li> ...
             </ul>
-            <ul class="column">
+            <ul class="players">
               <li> Players
               <li> ...
             </ul>
