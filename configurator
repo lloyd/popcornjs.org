@@ -144,24 +144,12 @@
 
     <div id="container">
       <div id="content" role="main">
-
-
-        <div id="post-26" class="post-26 page type-page hentry">
-          <div class="entry-content">
-            <h3>Download Popcorn.js 0.8</h3>
-<h4>Latest Stable Version: <a href="https://webmademovies.lighthouseapp.com/projects/63272/changelog">Changelog</a></h4>
-<ul>
-<li>Complete File: <a href="code/dist/popcorn-complete.js" target="_blank">popcorn-complete.js</a></li>
-<li>Complete File Minified: <a href="code/dist/popcorn-complete.min.js" target="_blank">popcorn-complete.min.js</a></li>
-<li>Or, <a href="configurator">configure your very own customized version</a></li>
-</ul>
-<p>You can download the entire project in either <a href="https://github.com/webmademovies/popcorn-js/zipball/master">zip</a> or <a href="https://github.com/webmademovies/popcorn-js/tarball/master">tar</a> formats from Git.</p>
-<p>You can also clone the project with <a href="http://git-scm.com">Git</a> by running:</p>
-<pre>$ git clone git://github.com/webmademovies/popcorn-js</pre>
-                                  </div><!-- .entry-content -->
-        </div><!-- #post-## -->
-
-        
+        <h3>Create a Custom Popcorn.js library</h3>
+        <p>
+          popcorn.js contains many plugins, subtitle parsers, players, and effects
+          to choose from.  This page lets you mix and match the various elements to
+          create a svelte popcorn.js build that has only what you want.
+        </p>
 
       </div><!-- #content -->
     </div><!-- #container -->
