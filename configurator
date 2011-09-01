@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" media="all" href="wp-content/themes/Opensource-Wordpress-Theme/style.css" />
   <link rel="stylesheet" type="text/css" media="all" href="wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
   <script src="http://code.jquery.com/jquery-1.4.4.js"></script>  
+  <script src="configurator.js"></script>  
   <!--
     Again Internet, sorry for this grossness in the head, google said to put it here
   -->
@@ -148,9 +149,39 @@
         <p>
           popcorn.js contains many plugins, subtitle parsers, players, and effects
           to choose from.  This page lets you mix and match the various elements to
-          create a svelte popcorn.js build that has only what you want.
+          create a svelte popcorn.js build that has only what you want.  Just follow
+          these steps:
         </p>
+        <p>
+          <span class="step">1.</span> Select the elements you want:
+          <br>
+          <div id="elements">
+            <ul class="column">
+              <li> Effects
+              <li> ...
+            </ul>
+            <ul class="column">
+              <li> Parsers 
+              <li> ...
+            </ul>
+            <ul class="column">
+              <li> Plugins
+              <li> ...
+            </ul>
+            <ul class="column">
+              <li> Players
+              <li> ...
+            </ul>
+          </div>
 
+          <span class="step">2.</span> Build your library!
+          <input type="button" value="Build It"></input>
+          <div id="progress"><div id="current"></div></div>
+
+          <span class="step">3.</span> Copy the contents of your library and save them to a file:
+          <textarea id="built_library"></textarea>
+
+        </p>
       </div><!-- #content -->
     </div><!-- #container -->
 
