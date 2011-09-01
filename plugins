@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Plugins | Popcorn.js</title>
-  <link rel="stylesheet" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/css/style-demo2.css" />
-  <link rel="stylesheet" type="text/css" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.css">
+  <link rel="stylesheet" href="wp-content/themes/Opensource-Wordpress-Theme/css/style-demo2.css" />
+  <link rel="stylesheet" type="text/css" href="wp-content/themes/Opensource-Wordpress-Theme/shadowbox.css">
 
-  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/style.css" />
-  <link rel="stylesheet" type="text/css" media="all" href="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
+  <link rel="stylesheet" type="text/css" media="all" href="wp-content/themes/Opensource-Wordpress-Theme/style.css" />
+  <link rel="stylesheet" type="text/css" media="all" href="wp-content/themes/Opensource-Wordpress-Theme/oss.css" />
   <script src="http://code.jquery.com/jquery-1.4.4.js"></script>  
   <!--
     Again Internet, sorry for this grossness in the head, google said to put it here
@@ -25,12 +25,12 @@
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   </script>
-  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/shadowbox.js"></script>
+  <script type="text/javascript" src="wp-content/themes/Opensource-Wordpress-Theme/shadowbox.js"></script>
   <script type="text/javascript">
    Shadowbox.init();
   </script>
   
-  <script type="text/javascript" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/jquery.viewline.js"></script>
+  <script type="text/javascript" src="wp-content/themes/Opensource-Wordpress-Theme/jquery.viewline.js"></script>
   
 	<style>
 	#main {
@@ -56,7 +56,7 @@
 	
 	#demo-reel #left-arrow, #demo-reel #right-arrow {
 		position: absolute;
-		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/arrows2.png);
+		background-image: url(wp-content/themes/Opensource-Wordpress-Theme/images/arrows2.png);
 		cursor: pointer;
 		height: 38px;
 		width: 27px;
@@ -90,7 +90,7 @@
 		right: 0;
 		left: 0;
 		bottom: 0;
-		background-image: url(http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/images/caption-bg2.png);
+		background-image: url(wp-content/themes/Opensource-Wordpress-Theme/images/caption-bg2.png);
 		padding: 20px;
 		color: #fff;
 		z-index: 40;
@@ -120,18 +120,18 @@
   <div id="header">
     <div id="access" role="navigation">
             <div class="menu-header"><ul id="menu-main-menu" class="menu"><li id="menu-item-161" class="menu-item menu-item-type-custom menu-item-161"><a href="/">Home</a></li>
-<li id="menu-item-154" class="menu-item menu-item-type-post_type menu-item-154"><a href="http://popcornjs.org/documentation">Documentation</a></li>
-<li id="menu-item-152" class="menu-item menu-item-type-post_type current-menu-item page_item page-item-59 current_page_item menu-item-152"><a href="http://popcornjs.org/plugins">Plugins</a></li>
-<li id="menu-item-153" class="menu-item menu-item-type-post_type menu-item-153"><a href="http://popcornjs.org/demos">Demos</a></li>
-<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-202"><a href="http://popcornjs.org/community">Community</a></li>
-<li id="menu-item-280" class="menu-item menu-item-type-post_type menu-item-280"><a href="http://popcornjs.org/download">Download</a></li>
+<li id="menu-item-154" class="menu-item menu-item-type-post_type menu-item-154"><a href="documentation">Documentation</a></li>
+<li id="menu-item-152" class="menu-item menu-item-type-post_type current-menu-item page_item page-item-59 current_page_item menu-item-152"><a href="plugins">Plugins</a></li>
+<li id="menu-item-153" class="menu-item menu-item-type-post_type menu-item-153"><a href="demos">Demos</a></li>
+<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-202"><a href="community">Community</a></li>
+<li id="menu-item-280" class="menu-item menu-item-type-post_type menu-item-280"><a href="download">Download</a></li>
 </ul></div>            <div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
     </div><!-- #access -->
     <div id="masthead">
       <div id="branding" role="banner">
                 <h1 id="site-title">
           <span>
-            <a href="http://popcornjs.org/" title="Popcorn.js" rel="home">Popcorn.js</a>
+            <a href="" title="Popcorn.js" rel="home">Popcorn.js</a>
           </span>
         </h1>
         <div id="site-description">The HTML5 Media Framework</div>
@@ -151,7 +151,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/tagthisperson">tagthisperson</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/tagthisperson/popcorn.tagthisperson.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/tag-this-person"><br /></a></p>
+ <a href="Plugin/tag-this-person"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -163,7 +163,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/lastfm">lastfm</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/lastfm/popcorn.lastfm.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/lastfm"><br /></a></p>
+ <a href="Plugin/lastfm"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -175,7 +175,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/image">image</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/image/popcorn.image.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/image"><br /></a></p>
+ <a href="Plugin/image"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -187,7 +187,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/attribution">attribution</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/attribution/popcorn.attribution.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/attribution"><br /></a></p>
+ <a href="Plugin/attribution"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -199,7 +199,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/wikipedia">wikipedia</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/wikipedia/popcorn.wikipedia.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/wikipedia"><br /></a></p>
+ <a href="Plugin/wikipedia"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -210,7 +210,7 @@
           <h1 class="entry-title">Webpage</h1>
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/webpage">webpage</a><br />
-<a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/webpage/popcorn.webpage.js">Get Code &darr;</a>  <a href="http://popcornjs.org/Plugin/webpage"><br /></a></p>
+<a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/webpage/popcorn.webpage.js">Get Code &darr;</a>  <a href="Plugin/webpage"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -222,7 +222,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/footnote">footnote</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/footnote/popcorn.footnote.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/footnote"><br /></a></p>
+ <a href="Plugin/footnote"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -234,7 +234,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/subtitle">subtitle</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/subtitle/popcorn.subtitle.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/subtitle"><br /></a></p>
+ <a href="Plugin/subtitle"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -246,7 +246,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/flickr">flickr</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/flickr/popcorn.flickr.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/flickr"><br /></a></p>
+ <a href="Plugin/flickr"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -258,7 +258,7 @@
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/googlemap">googlemap</a><br />
 <a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/googlemap/popcorn.googlemap.js">Get Code &darr;</a><br />
- <a href="http://popcornjs.org/Plugin/google-maps"><br /></a></p>
+ <a href="Plugin/google-maps"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -269,7 +269,7 @@
           <h1 class="entry-title">Twitter</h1>
           <div class="entry-content">
             <p><p>Visit the Repo on Github: <a href="https://github.com/webmademovies/popcorn-js/tree/master/plugins/twitter">twitter</a>.<br />
-<a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/twitter/popcorn.twitter.js">Get Code ↓</a> <a href="http://popcornjs.org/Plugin/twitter"><br /></a></p>
+<a href="https://github.com/webmademovies/popcorn-js/raw/master/plugins/twitter/popcorn.twitter.js">Get Code ↓</a> <a href="Plugin/twitter"><br /></a></p>
 </p>
                                   </div><!-- .entry-content -->
         </div><!-- #post-## -->
@@ -288,7 +288,7 @@
         <footer>
          Popcorn.js is brought to you by Mozilla.<br>
           <a href="http://www.mozilla.org" title="The Mozilla Foundation">
-            <img height="50px"src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/mozilla.png"></a>
+            <img height="50px"src="wp-content/themes/Opensource-Wordpress-Theme/img/mozilla.png"></a>
       <p>
           This website was designed by <a href="http://www.bocoup.com">bocoup</a> and members of the popcorn.js community. Demo gallery by <a href="http://www.iondesigns.org/">iondesigns</a>. <br>See a full list of the project sponsors <a href="/sponsors">here</a>.
         </p>
@@ -300,7 +300,7 @@
 
 
 
-  <a href="https://github.com/webmademovies/popcorn-js"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/github-left.png" alt="Fork me on GitHub"></a>
-  <a href="http://webmademovies.org"><img style="position: absolute; top: 20px; right: 0; border: 0;" src="http://popcornjs.org/wp-content/themes/Opensource-Wordpress-Theme/img/wwm-ticket.png" alt="A Web Made Movies Project"></a>
+  <a href="https://github.com/webmademovies/popcorn-js"><img style="position: absolute; top: 0; left: 0; border: 0;" src="wp-content/themes/Opensource-Wordpress-Theme/img/github-left.png" alt="Fork me on GitHub"></a>
+  <a href="http://webmademovies.org"><img style="position: absolute; top: 20px; right: 0; border: 0;" src="wp-content/themes/Opensource-Wordpress-Theme/img/wwm-ticket.png" alt="A Web Made Movies Project"></a>
 </body>
 </html>
